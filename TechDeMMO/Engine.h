@@ -25,9 +25,13 @@ private:
     {
       screenW = 1366;
       screenH = 768;
+
+      ip = "192.168.1.puturiphere";
+      user = "NONAME";
     }
 
     int screenW, screenH;
+    std::string ip, user;
   };
 
   static Settings settings;

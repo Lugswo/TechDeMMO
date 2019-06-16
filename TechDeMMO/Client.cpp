@@ -1,17 +1,18 @@
 #include "Client.h"
 
-#include <WinSock2.h>
-#include <WS2tcpip.h>
+#include <thread>
 
 #include "TraceLog.h"
-
-#pragma comment(lib, "Ws2_32.lib")
+#include "InputManager.h"
 
 #define PORT "25565"
 
 bool Client::connected = false;
+SOCKET Client::sock;
 
-void Client::Init()
+static char buf[1024];
+
+void Client::Init(const std::string &ip)
 {
   WSADATA wsa_data;
   int res;
@@ -31,7 +32,7 @@ void Client::Init()
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
 
-  res = getaddrinfo("192.168.56.1", PORT, &hints, &result);
+  res = getaddrinfo(ip.c_str(), PORT, &hints, &result);
   if (res != 0)
   {
     TraceLog::Log(TRACE_LEVEL::ERR, "Getaddrinfo failed!  Error code " + std::to_string(res) + ".  Cannot connect to server.");
@@ -39,7 +40,7 @@ void Client::Init()
     return;
   }
 
-  SOCKET sock = INVALID_SOCKET;
+  sock = INVALID_SOCKET;
 
   ptr = result;
   sock = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
@@ -78,11 +79,77 @@ void Client::Init()
     return;
   }
 
+  int timeout = 10;
+  setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
+  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout));
+
+  // get server message
+
   TraceLog::Log(TRACE_LEVEL::INFO, "Successfully connected to server!");
   connected = true;
+
+  std::thread t(InputText);
+  t.detach();
+}
+
+void Client::InputText()
+{
+  while (true)
+  {
+    //std::string str;
+    //std::getline(std::cin, str);
+
+    //Packet p(PacketTypes::TEXT, str, str);
+    //SendPacket(p);
+  }
+}
+
+void Client::Update()
+{
+  ReceivePacket();
+
+  if (InputManager::KeyPress(GLFW_KEY_4))
+  {
+    std::string str = "Hello server!";
+    Packet p(PacketTypes::TEXT, str, "Hello server!");
+    SendPacket(p);
+  }
+}
+
+void Client::ReceivePacket()
+{
+  if (connected == true)
+  {
+    int res = 0;
+    res = recv(sock, buf, 1024, 0);
+
+    if (res > 0)
+    {
+      std::cout << "\r" << buf << std::flush << std::endl;
+    }
+  }
+}
+
+void Client::SendPacket(Packet &p)
+{
+  int res = send(sock, p, p.GetSize(), 0);
+
+  if (res == SOCKET_ERROR)
+    TraceLog::Log(TRACE_LEVEL::ERR, "Failed to send message '" + p.GetDesc() + "'.  Error code " + std::to_string(WSAGetLastError()) + ".");
+  else
+    TraceLog::Log(TRACE_LEVEL::NETWORK, "Sent message '" + p.GetDesc() + "'.");
 }
 
 void Client::Shutdown()
 {
+  int res = shutdown(sock, SD_SEND);
+
+  if (res == SOCKET_ERROR)
+  {
+    TraceLog::Log(TRACE_LEVEL::FATAL, "Shutdown failed!  Error code " + std::to_string(WSAGetLastError()) + ".");
+  }
+  closesocket(sock);
   WSACleanup();
+
+  TraceLog::Log(TRACE_LEVEL::INFO, "Client successfully shutdown.");
 }

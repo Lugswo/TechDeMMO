@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <glad.h>
+#include <filesystem>
 
 #include "WindowManagement.h"
 #include "InputManager.h"
@@ -12,14 +13,16 @@
 #include "FileUtils.h"
 #include "Client.h"
 
+#include "SharedVariables.h"
+
 GLFWwindow * Engine::window;
 bool Engine::successfullyOpened;
 Engine::Settings Engine::settings;
 
 void Engine::SaveSettings()
 {
-  const char *mdpath = GetMyDocumentsPath();
-  if (mdpath)
+  const std::string& mdpath = GetMyDocumentsPath();
+  if (mdpath != "")
   {
     std::string str = mdpath;
     str += "/TechDeMMO/settings.ini";
@@ -27,6 +30,8 @@ void Engine::SaveSettings()
 
     save << settings.screenW << std::endl;
     save << settings.screenH << std::endl;
+    save << settings.ip << std::endl;
+    save << settings.user << std::endl;
     TraceLog::Log(TRACE_LEVEL::INFO, "Successfully saved!");
   }
   else
@@ -37,22 +42,26 @@ void Engine::SaveSettings()
 
 bool Engine::LoadSettings()
 {
-  const char* mdpath = GetMyDocumentsPath();
-  if (mdpath)
+  const std::string& mdpath = GetMyDocumentsPath();
+  if (mdpath != "")
   {
     std::string str = mdpath;
+    std::string folderstr = mdpath;
+    folderstr += "/TechDeMMO/";
     str += "/TechDeMMO/settings.ini";
     if (CheckForFile(str))
     {
       TraceLog::Log(TRACE_LEVEL::INFO, "Settings file successfully found.");
       std::ifstream file(str);
-      file >> settings.screenW >> settings.screenH;
+      file >> settings.screenW >> settings.screenH >> settings.ip >> settings.user;
 
       TraceLog::Log(TRACE_LEVEL::INFO, "Settings file successfully loaded.");
     }
     else
     {
       TraceLog::Log(TRACE_LEVEL::WARN, "Settings file not found.  New one being generated.");
+
+      std::experimental::filesystem::create_directory(folderstr);
 
       std::ofstream file(str);
       if (file.bad())
@@ -61,8 +70,10 @@ bool Engine::LoadSettings()
         return false;
       }
 
-      file << settings.screenW;
-      file << settings.screenH;
+      file << settings.screenW << std::endl;
+      file << settings.screenH << std::endl;
+      file << "192.168.puturshittyipherelol" << std::endl;
+      file << "NONAME" << std::endl;
 
       TraceLog::Log(TRACE_LEVEL::INFO, "Settings file successfully generated.");
     }
@@ -128,9 +139,10 @@ void Engine::Update()
 
       if (InputManager::KeyPress(GLFW_KEY_F7))
       {
-        Client::Init();
+        Client::Init(settings.ip);
       }
 
+      Client::Update();
       GraphicsEngine::Update(1.f);
 
       glfwSwapBuffers(window);
@@ -148,4 +160,6 @@ void Engine::Shutdown()
   SaveSettings();
 
   TraceLog::Log(TRACE_LEVEL::IMPORTANT, "Game succesfully closed.");
+
+  Client::Shutdown();
 }

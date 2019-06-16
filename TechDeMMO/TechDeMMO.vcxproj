@@ -130,6 +130,8 @@
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="TraceLog.cpp" />
     <ClCompile Include="WindowManagement.cpp" />
   </ItemGroup>
@@ -142,6 +144,10 @@
     <ClInclude Include="GameObjectFactory.h" />
     <ClInclude Include="GraphicsEngine.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="Packet.h" />
+    <ClInclude Include="PacketHandler.h" />
+    <ClInclude Include="PacketTypes.h" />
+    <ClInclude Include="SharedVariables.h" />
     <ClInclude Include="TraceLog.h" />
     <ClInclude Include="WindowManagement.h" />
   </ItemGroup>

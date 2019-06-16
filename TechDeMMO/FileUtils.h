@@ -2,4 +2,4 @@
 #include <string>
 
 bool CheckForFile(const std::string & filename);
-const char *GetMyDocumentsPath();
+const std::string& GetMyDocumentsPath();

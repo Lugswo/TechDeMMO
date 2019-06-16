@@ -11,7 +11,7 @@ bool CheckForFile(const std::string & filename)
   return f.good();
 }
 
-const char *GetMyDocumentsPath()
+const std::string& GetMyDocumentsPath()
 {
   char my_documents[MAX_PATH];
   HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
@@ -19,7 +19,7 @@ const char *GetMyDocumentsPath()
   if (result != S_OK)
   {
     TraceLog::Log(TRACE_LEVEL::WARN, "My Documents path not found!");
-    return nullptr;
+    return "";
   }
 
   return my_documents;

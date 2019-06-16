@@ -2,8 +2,6 @@
 *.log
 /.vs
 .vs
-x64
-/x64
 /TechDeMMO/.vs
 /TechDeMMO/Debug
 /TechDeMMO/TechDeMMO/Debug

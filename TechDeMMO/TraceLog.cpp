@@ -101,6 +101,9 @@ void TraceLog::Log(TRACE_LEVEL verbosity, const std::string& message)
         case TRACE_LEVEL::WARN:
           str += "WARNG";
           break;
+        case TRACE_LEVEL::NETWORK:
+          str += "NETWK";
+          break;
         case TRACE_LEVEL::EDITOR:
           str += "EDITR";
           break;

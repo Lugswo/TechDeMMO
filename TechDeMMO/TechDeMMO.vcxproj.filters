@@ -46,6 +46,12 @@
     <Filter Include="Source Files\Systems\Input">
       <UniqueIdentifier>{e49d4627-792e-4338-a024-59bb12f406f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shared">
+      <UniqueIdentifier>{2c8c864d-471b-4554-89ae-ce8eaa219956}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Systems\Networking\Packets">
+      <UniqueIdentifier>{24965a40-338c-473b-baa6-21497d8733bb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -84,6 +90,12 @@
     <ClCompile Include="InputManager.cpp">
       <Filter>Source Files\Systems\Input</Filter>
     </ClCompile>
+    <ClCompile Include="PacketHandler.cpp">
+      <Filter>Source Files\Systems\Networking\Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet.cpp">
+      <Filter>Source Files\Systems\Networking\Packets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -115,6 +127,18 @@
     </ClInclude>
     <ClInclude Include="InputManager.h">
       <Filter>Source Files\Systems\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedVariables.h">
+      <Filter>Source Files\Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHandler.h">
+      <Filter>Source Files\Systems\Networking\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Source Files\Systems\Networking\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketTypes.h">
+      <Filter>Source Files\Systems\Networking\Packets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

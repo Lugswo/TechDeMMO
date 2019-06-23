@@ -11,7 +11,7 @@ bool CheckForFile(const std::string & filename)
   return f.good();
 }
 
-const std::string& GetMyDocumentsPath()
+const std::string GetMyDocumentsPath()
 {
   char my_documents[MAX_PATH];
   HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);

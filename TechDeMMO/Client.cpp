@@ -4,6 +4,7 @@
 
 #include "TraceLog.h"
 #include "InputManager.h"
+#include "Engine.h"
 
 #define PORT "25565"
 
@@ -85,6 +86,10 @@ void Client::Init(const std::string &ip)
 
   // get server message
 
+  std::string str = "Lugswo";
+  Packet login(PacketTypes::LOGIN, str, "Login.");
+  SendPacket(login);
+
   TraceLog::Log(TRACE_LEVEL::INFO, "Successfully connected to server!");
   connected = true;
 
@@ -125,7 +130,20 @@ void Client::ReceivePacket()
 
     if (res > 0)
     {
-      std::cout << "\r" << buf << std::flush << std::endl;
+      char *c = new char[1024];
+      memcpy(c, buf, 1024);
+      Packet p(c);
+
+      PacketTypes t = p.GetType();
+
+      switch (t)
+      {
+        case PacketTypes::TEXT:
+        {
+          TraceLog::Log(TRACE_LEVEL::NETWORK, p.GetData());
+          break;
+        }
+      }
     }
   }
 }
@@ -142,6 +160,8 @@ void Client::SendPacket(Packet &p)
 
 void Client::Shutdown()
 {
+  Packet p(PacketTypes::CSHUT);
+  SendPacket(p);
   int res = shutdown(sock, SD_SEND);
 
   if (res == SOCKET_ERROR)

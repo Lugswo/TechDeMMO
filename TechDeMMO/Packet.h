@@ -25,7 +25,7 @@ public:
 
   Packet(PacketTypes p, const std::string &d, const std::string&s = "")
   {
-    size = sizeof(PacketTypes) + d.length();
+    size = static_cast<int>(sizeof(PacketTypes) + d.length());
     beginData = new char[size];
     PacketTypes *pa = reinterpret_cast<PacketTypes *>(beginData);
     *pa = p;
@@ -56,12 +56,30 @@ public:
     desc = s;
   }
 
+  Packet(PacketTypes p)
+  {
+    size = static_cast<int>(sizeof(PacketTypes) + 1);
+    beginData = new char[size];
+    PacketTypes *pa = reinterpret_cast<PacketTypes *>(beginData);
+    *pa = p;
+    const char * g = "e";
+    char * temp = reinterpret_cast<char *>(beginData + sizeof(PacketTypes));
+    memcpy(temp, g, 1);
+
+    data = reinterpret_cast<char *>(temp);
+  }
+
   ~Packet();
 
   const char * GetData() const;
   const int GetSize() const
   {
     return size;
+  }
+
+  const PacketTypes GetType() const
+  {
+    return type;
   }
 
   operator char*();
@@ -80,6 +98,7 @@ private:
     //  used for deleting all data
   char *beginData;
 
+    //  not sent with the packet so safe to store as many descriptors as u want
   std::string desc;
 
   int size = 0;

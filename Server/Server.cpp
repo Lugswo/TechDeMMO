@@ -9,7 +9,7 @@
 
 bool Server::successfullyOpened = false;
 SOCKET Server::sock;
-std::vector<SOCKET> Server::sockets;
+std::vector<Server::S_Client> Server::sockets;
 
 static const char *sendMessage = "Successfully connected to the server.";
 static const std::string str = "Successfully connected to the server.";
@@ -85,6 +85,22 @@ void Server::Init(void)
   successfullyOpened = true;
 }
 
+void Server::SendPacketToAll(Packet &p)
+{
+  for (int i = 0; i < sockets.size(); ++i)
+  {
+    int res = send(sockets[i].socket, p, p.GetSize(), 0);
+
+    if (res == SOCKET_ERROR)
+    {
+      TraceLog::Log(TRACE_LEVEL::ERR, "Send failed!  Error code " + std::to_string(WSAGetLastError()) + ".  Disconnecting " + sockets[i].user + ".");
+      sockets.erase(sockets.begin() + i);
+    }
+    else
+      TraceLog::Log(TRACE_LEVEL::NETWORK, "Sent message '" + p.GetDesc() + "' to " + sockets[i].user + ".");
+  }
+}
+
 void Server::Update()
 {
   int res;
@@ -101,20 +117,20 @@ void Server::Update()
     tv.tv_usec = 10;
 
     if (!sockets.empty())
-      res = select(sockets.back() + 1, &rfds, (fd_set *)0, (fd_set *)0, &tv);
+      res = select(sockets.back().socket + 1, &rfds, (fd_set *)0, (fd_set *)0, &tv);
     else
       res = select(sock + 1, &rfds, (fd_set *)0, (fd_set *)0, &tv);
     if (res > 0)
     {
-      sockets.push_back(SOCKET());
+      sockets.push_back(S_Client());
 
-      SOCKET *csock = &(sockets.back());
-      *csock = accept(sock, nullptr, nullptr);
+      S_Client *csock = &(sockets.back());
+      csock->socket = accept(sock, nullptr, nullptr);
 
-      if (*csock != INVALID_SOCKET)
+      if (csock->socket != INVALID_SOCKET)
       {
         TraceLog::Log(TRACE_LEVEL::INFO, "Client found and accepted.");
-        res = send(*csock, sendMessage, 38, 0);
+        res = send(csock->socket, sendMessage, 38, 0);
         if (res == SOCKET_ERROR)
         {
           TraceLog::Log(TRACE_LEVEL::ERR, "Send failed!  Error code " + std::to_string(WSAGetLastError()) + ".");
@@ -124,8 +140,8 @@ void Server::Update()
         {
           TraceLog::Log(TRACE_LEVEL::NETWORK, "Sent message \"" + str + "\" to client.");
           int timeout = 10;
-          setsockopt(*csock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
-          setsockopt(*csock, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout));
+          setsockopt(csock->socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
+          setsockopt(csock->socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout));
         }
       }
       else
@@ -136,15 +152,49 @@ void Server::Update()
     }
 
     int size = static_cast<int>(sockets.size());
+
     for (int i = 0; i < size; ++i)
     {
-      res = recv(sockets[i], recbuf, 1024, 0);
+      res = recv(sockets[i].socket, recbuf, 1024, 0);
 
       if (res > 0)
       {
-        Packet p(recbuf);
-        std::string str = p.GetData();
-        TraceLog::Log(TRACE_LEVEL::NETWORK, "Message '" + str + "' received.");
+        char *c = new char[1024];
+        memcpy(c, recbuf, 1024);
+        Packet p(c);
+
+        PacketTypes t = p.GetType();
+
+        switch (t)
+        {
+          case PacketTypes::TEXT:
+          {
+            std::string str = p.GetData();
+            TraceLog::Log(TRACE_LEVEL::NETWORK, "Message '" + str + "' received.");
+            break;
+          }
+          case PacketTypes::CSHUT:
+          {
+            TraceLog::Log(TRACE_LEVEL::NETWORK, sockets[i].user + " disconnected.");
+            sockets.erase(sockets.begin() + i--);
+            break;
+          }
+          case PacketTypes::LOGIN:
+          {
+            sockets[i].user = p.GetData();
+            std::string str2 = sockets[i].user;
+            str2 += " has joined.";
+            TraceLog::Log(TRACE_LEVEL::NETWORK, str2);
+            Packet pa(PacketTypes::TEXT, str2, "Login message.");
+            SendPacketToAll(pa);
+            break;
+          }
+          default:
+          {
+            TraceLog::Log(TRACE_LEVEL::ERR, "Packet type unrecognized!");
+            break;
+          }
+        }
       }
     }
 
@@ -152,15 +202,6 @@ void Server::Update()
     {
       if (_getch() == 'e')
       {
-        for (int i = 0; i < size; ++i)
-        {
-          res = send(sockets[i], "alexo suxo", 11, 0);
-
-          if (res == SOCKET_ERROR)
-            TraceLog::Log(TRACE_LEVEL::ERR, "Send failed!  Error code " + std::to_string(WSAGetLastError()) + ".");
-          else
-            TraceLog::Log(TRACE_LEVEL::NETWORK, "Sent message \"alexo suxo\" to client.");
-        }
       }
     }
   }

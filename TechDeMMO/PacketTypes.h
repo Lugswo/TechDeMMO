@@ -2,5 +2,8 @@
 
 enum class PacketTypes
 {
-  TEXT
+  TEXT,
+  LOGIN,
+  CSHUT,
+  SSHUT
 };

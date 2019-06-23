@@ -11,13 +11,6 @@ public:
   static void Update();
   static void Shutdown();
 
-private:
-  Engine() {};
-  ~Engine() {};
-
-    //  Settings file saved in this order:
-    //    -  screen width
-    //    -  screen height
   class Settings
   {
   public:
@@ -30,9 +23,17 @@ private:
       user = "NONAME";
     }
 
-    int screenW, screenH;
-    std::string ip, user;
+    static int screenW, screenH;
+    static std::string ip, user;
   };
+
+private:
+  Engine() {};
+  ~Engine() {};
+
+    //  Settings file saved in this order:
+    //    -  screen width
+    //    -  screen height
 
   static Settings settings;
 

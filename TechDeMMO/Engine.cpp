@@ -18,6 +18,8 @@
 GLFWwindow * Engine::window;
 bool Engine::successfullyOpened;
 Engine::Settings Engine::settings;
+int Engine::Settings::screenH, Engine::Settings::screenW;
+std::string Engine::Settings::ip, Engine::Settings::user;
 
 void Engine::SaveSettings()
 {
@@ -117,8 +119,6 @@ void Engine::Init()
     TraceLog::Log(TRACE_LEVEL::FATAL, "Something went wrong initializing the game.  Shutting down.");
     return;
   }
-
-
 
   TraceLog::Log(TRACE_LEVEL::IMPORTANT, "Game successfully started.");
   successfullyOpened = true;

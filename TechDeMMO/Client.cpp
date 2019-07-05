@@ -86,7 +86,7 @@ void Client::Init(const std::string &ip)
 
   // get server message
 
-  std::string str = "Lugswo";
+  std::string str = Engine::Settings::user;
   Packet login(PacketTypes::LOGIN, str, "Login.");
   SendPacket(login);
 

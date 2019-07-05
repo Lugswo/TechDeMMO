@@ -25,12 +25,12 @@ public:
 
   Packet(PacketTypes p, const std::string &d, const std::string&s = "")
   {
-    size = static_cast<int>(sizeof(PacketTypes) + d.length());
+    size = static_cast<int>(sizeof(PacketTypes) + d.length() + 1);
     beginData = new char[size];
     PacketTypes *pa = reinterpret_cast<PacketTypes *>(beginData);
     *pa = p;
     char * temp = reinterpret_cast<char *>(beginData + sizeof(PacketTypes));
-    memcpy(temp, d.c_str(), d.length());
+    memcpy(temp, d.c_str(), d.length() + 1);
 
     data = reinterpret_cast<char *>(temp);
 

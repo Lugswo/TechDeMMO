@@ -101,11 +101,11 @@ void Client::InputText()
 {
   while (true)
   {
-    //std::string str;
-    //std::getline(std::cin, str);
+    std::string str;
+    std::getline(std::cin, str);
 
-    //Packet p(PacketTypes::TEXT, str, str);
-    //SendPacket(p);
+    Packet p(PacketTypes::TEXT, str, str);
+    SendPacket(p);
   }
 }
 

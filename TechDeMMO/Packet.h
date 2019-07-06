@@ -37,6 +37,20 @@ public:
     desc = s;
   }
 
+  Packet(PacketTypes p, const char *d, const std::string&s = "")
+  {
+    size = static_cast<int>(sizeof(PacketTypes) + strlen(d) + 1);
+    beginData = new char[size];
+    PacketTypes *pa = reinterpret_cast<PacketTypes *>(beginData);
+    *pa = p;
+    char * temp = reinterpret_cast<char *>(beginData + sizeof(PacketTypes));
+    memcpy(temp, d, strlen(d) + 1);
+
+    data = reinterpret_cast<char *>(temp);
+
+    desc = s;
+  }
+
   template <typename T>
   Packet(PacketTypes p, T *d, int num = -1, const std::string& s = "")
   {

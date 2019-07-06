@@ -1,6 +1,7 @@
 #include "Server.h"
 
 #include <GLFW/glfw3.h>
+#include <chrono>
 
 #include "TraceLog.h"
 #include "Packet.h"
@@ -245,7 +246,13 @@ void Server::Update()
           }
         }
       }
+      else if (res == 0)
+      {
+        
+      }
     }
+
+
   }
 }
 

@@ -37,6 +37,10 @@ private:
     std::string user;
   };
 
+  static void SendPacket(Packet &p, S_Client &cl, int i);
+
+  static void CreateMessage(std::string &, const std::string&, const std::string&);
+
   static bool successfullyOpened;
   static SOCKET sock;
 

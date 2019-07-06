@@ -5,6 +5,7 @@
 #include "TraceLog.h"
 #include "InputManager.h"
 #include "Engine.h"
+#include "SharedVariables.h"
 
 #define PORT "25565"
 
@@ -80,11 +81,36 @@ void Client::Init(const std::string &ip)
     return;
   }
 
+
+  // get server message
+
+  std::string ver = version;
+  Packet verCheck(PacketTypes::VERSION, ver, "Version check.");
+  SendPacket(verCheck);
+
+  res = recv(sock, buf, 1024, 0);
+
+  if (res > 0)
+  {
+    char *c = new char[1024];
+    memcpy(c, buf, 1024);
+    Packet p(c);
+
+    std::string ver2 = p.GetData();
+    if (ver2 != "Correct")
+    {
+      TraceLog::Log(TRACE_LEVEL::FATAL, "Game not updated!  Please update the game in order to connect to the server.");
+      return;
+    }
+    else
+    {
+      TraceLog::Log(TRACE_LEVEL::INFO, "Version verified successfully.");
+    }
+  }
+
   int timeout = 10;
   setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
   setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout));
-
-  // get server message
 
   std::string str = Engine::Settings::user;
   Packet login(PacketTypes::LOGIN, str, "Login.");
@@ -104,8 +130,18 @@ void Client::InputText()
     std::string str;
     std::getline(std::cin, str);
 
-    Packet p(PacketTypes::TEXT, str, str);
-    SendPacket(p);
+    if (str.front() == '/')
+    {
+      if (str == "/exit")
+      {
+        Engine::CloseWindow();
+      }
+    }
+    else if (str != "")
+    {
+      Packet p(PacketTypes::TEXT, str, str);
+      SendPacket(p);
+    }
   }
 }
 
@@ -141,6 +177,7 @@ void Client::ReceivePacket()
         case PacketTypes::TEXT:
         {
           TraceLog::Log(TRACE_LEVEL::NETWORK, p.GetData());
+          std::cout << p.GetData() << std::endl;
           break;
         }
       }

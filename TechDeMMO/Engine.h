@@ -27,6 +27,8 @@ public:
     static std::string ip, user;
   };
 
+  static void CloseWindow();
+
 private:
   Engine() {};
   ~Engine() {};

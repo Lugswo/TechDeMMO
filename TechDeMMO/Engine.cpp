@@ -124,6 +124,11 @@ void Engine::Init()
   successfullyOpened = true;
 }
 
+void Engine::CloseWindow()
+{
+  glfwSetWindowShouldClose(window, true);
+}
+
 void Engine::Update()
 {
   if (successfullyOpened)

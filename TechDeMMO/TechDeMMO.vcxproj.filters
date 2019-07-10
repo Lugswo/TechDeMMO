@@ -52,6 +52,12 @@
     <Filter Include="Source Files\Systems\Networking\Packets">
       <UniqueIdentifier>{24965a40-338c-473b-baa6-21497d8733bb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Systems\Graphics\Low Level">
+      <UniqueIdentifier>{c68a4cb4-32f5-4603-8ee9-2b0bfc0c7e93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Systems\Graphics\Shaders">
+      <UniqueIdentifier>{0a825a37-aff5-4a32-8122-e783bdae6314}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -96,6 +102,9 @@
     <ClCompile Include="Packet.cpp">
       <Filter>Source Files\Systems\Networking\Packets</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files\Systems\Graphics\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -139,6 +148,12 @@
     </ClInclude>
     <ClInclude Include="PacketTypes.h">
       <Filter>Source Files\Systems\Networking\Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="Square.h">
+      <Filter>Source Files\Systems\Graphics\Low Level</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Source Files\Systems\Graphics\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

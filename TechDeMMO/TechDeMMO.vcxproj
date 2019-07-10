@@ -132,6 +132,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="TraceLog.cpp" />
     <ClCompile Include="WindowManagement.cpp" />
   </ItemGroup>
@@ -147,7 +148,9 @@
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="PacketTypes.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="SharedVariables.h" />
+    <ClInclude Include="Square.h" />
     <ClInclude Include="TraceLog.h" />
     <ClInclude Include="WindowManagement.h" />
   </ItemGroup>

@@ -2,17 +2,22 @@
 
 #include <GLFW/glfw3.h>
 #include <chrono>
+#include <thread>
 
 #include "TraceLog.h"
 #include "Packet.h"
 #include "SharedVariables.h"
 
-bool Server::successfullyOpened = false;
+bool Server::successfullyOpened = false, Server::running;
 SOCKET Server::sock;
-std::vector<Server::S_Client> Server::sockets;
+std::vector<std::vector<Server::S_Client>> Server::channels;
+//std::vector<Server::S_Client> Server::sockets;
 
-static const char *sendMessage = "Successfully connected to the server.";
-static const std::string str = "Successfully connected to the server.";
+std::chrono::steady_clock Server::clock;
+std::chrono::time_point<std::chrono::steady_clock> Server::curr, Server::prev;
+std::chrono::duration<double, std::milli> Server::dt, Server::counter;
+
+const int channelNum = 5;
 
 void Server::Init(void)
 {
@@ -82,7 +87,57 @@ void Server::Init(void)
 
   freeaddrinfo(result);
 
+  TraceLog::Log(TRACE_LEVEL::INFO, "Initializing channels.");
+  for (int i = 0; i < channelNum; ++i)
+  {
+    channels.push_back(std::vector<S_Client>());
+  }
+
+  std::thread t(InputText);
+  t.detach();
+
   successfullyOpened = true;
+  running = true;
+}
+
+void Server::InputText()
+{
+  while (true)
+  {
+    std::string str;
+    std::getline(std::cin, str);
+
+    if (str.front() == '/')
+    {
+      if (str == "/exit")
+      {
+        running = false;
+      }
+      else if (str == "/list")
+      {
+        for (int i = 0; i < channels.size(); ++i)
+        {
+          std::cout << "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
+          std::cout << "List of players in channel " << i << std::endl;
+          for (int j = 0; j < channels[i].size(); ++j)
+          {
+            std::cout << channels[i][j].user << std::endl;
+          }
+          std::cout << "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << std::endl;
+        }
+      }
+      else
+      {
+        std::cout << "Command not recognized." << std::endl;
+      }
+    }
+    else if (str != "")
+    {
+      std::string msg = "[Server] " + str;
+      Packet p(PacketTypes::TEXT, msg, str);
+      SendPacketToAll(p);
+    }
+  }
 }
 
 void Server::CreateMessage(std::string &s, const std::string& user, const std::string& mess)
@@ -101,14 +156,14 @@ void Server::SendPacket(Packet &p, S_Client &cl, int i = -1)
   {
     TraceLog::Log(TRACE_LEVEL::ERR, "Send failed!  Error code " + std::to_string(WSAGetLastError()) + ".  Disconnecting " + cl.user + ".");
     if (i != -1)
-      sockets.erase(sockets.begin() + i);
+      channels[i].erase(channels[i].begin() + i);
     else
     {
-      for (int i = 0; i < sockets.size(); ++i)
+      for (int i = 0; i < channels[cl.channel].size(); ++i)
       {
-        if (sockets[i].user == cl.user)
+        if (channels[cl.channel][i].user == cl.user)
         {
-          sockets.erase(sockets.begin() + i);
+          channels[cl.channel].erase(channels[cl.channel].begin() + i);
           break;
         }
       }
@@ -120,15 +175,13 @@ void Server::SendPacket(Packet &p, S_Client &cl, int i = -1)
 
 void Server::SendPacketToAll(Packet &p)
 {
-  for (int i = 0; i < sockets.size(); ++i)
+  for (int j = 0; j < channelNum; ++j)
   {
-    SendPacket(p, sockets[i], i);
+    for (int i = 0; i < channels[j].size(); ++i)
+    {
+      SendPacket(p, channels[j][i], i);
+    }
   }
-}
-
-void Server::SendPacketToClient(Packet &p, int i)
-{
-  SendPacket(p, sockets[i]);
 }
 
 void Server::Update()
@@ -136,25 +189,30 @@ void Server::Update()
   int res;
   char recbuf[1024];
 
-  while (true)
+  struct timeval tv;
+  fd_set rfds;
+  FD_ZERO(&rfds);
+  FD_SET(sock, &rfds);
+
+  tv.tv_sec = 0;
+  tv.tv_usec = 10;
+
+  while (running)
   {
-    struct timeval tv;
-    fd_set rfds;
+    curr = clock.now();
+
     FD_ZERO(&rfds);
     FD_SET(sock, &rfds);
 
-    tv.tv_sec = 0;
-    tv.tv_usec = 10;
-
-    if (!sockets.empty())
-      res = select(sockets.back().socket + 1, &rfds, (fd_set *)0, (fd_set *)0, &tv);
-    else
-      res = select(sock + 1, &rfds, (fd_set *)0, (fd_set *)0, &tv);
+    //if (!sockets.empty())
+    //  res = select(sockets.back().socket + 1, &rfds, (fd_set *)0, (fd_set *)0, &tv);
+    //else
+    res = select(sock + 1, &rfds, (fd_set *)0, (fd_set *)0, &tv);
     if (res > 0)
     {
-      sockets.push_back(S_Client());
+      channels[0].push_back(S_Client());
 
-      S_Client *csock = &(sockets.back());
+      S_Client *csock = &(channels[0].back());
       csock->socket = accept(sock, nullptr, nullptr);
 
       if (csock->socket != INVALID_SOCKET)
@@ -169,90 +227,126 @@ void Server::Update()
         //else
         //{
         //  TraceLog::Log(TRACE_LEVEL::NETWORK, "Sent message \"" + str + "\" to client.");
-          int timeout = 10;
-          setsockopt(csock->socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
-          setsockopt(csock->socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout));
+        int timeout = 10;
+        setsockopt(csock->socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
+        setsockopt(csock->socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout));
         //}
       }
       else
       {
         TraceLog::Log(TRACE_LEVEL::ERR, "Connection to client failed!  Error code " + std::to_string(WSAGetLastError()) + ".");
-        sockets.pop_back();
+        channels[0].pop_back();
       }
     }
 
-    int size = static_cast<int>(sockets.size());
-
-    for (int i = 0; i < size; ++i)
+    for (int j = 0; j < channelNum; ++j)
     {
-      res = recv(sockets[i].socket, recbuf, 1024, 0);
+      int size = static_cast<int>(channels[j].size());
 
-      if (res > 0)
+      for (int i = 0; i < size; ++i)
       {
-        char *c = new char[1024];
-        memcpy(c, recbuf, 1024);
-        Packet p(c);
+        res = recv(channels[j][i].socket, recbuf, 1024, 0);
 
-        PacketTypes t = p.GetType();
-
-        switch (t)
+        if (res > 0)
         {
-          case PacketTypes::TEXT:
-          {
-            std::string str = p.GetData();
-            TraceLog::Log(TRACE_LEVEL::NETWORK, "Message '" + str + "' received.");
+          char *c = new char[1024];
+          memcpy(c, recbuf, 1024);
+          Packet p(c);
 
-            std::string res;
-            CreateMessage(res, sockets[i].user, str);
+          PacketTypes t = p.GetType();
 
-            Packet p(PacketTypes::TEXT, res, str);
-
-            SendPacketToAll(p);
-            break;
-          }
-          case PacketTypes::CSHUT:
+          switch (t)
           {
-            std::string disconnectedMessage = sockets[i].user;
-            disconnectedMessage += " disconnected.";
-            TraceLog::Log(TRACE_LEVEL::NETWORK, disconnectedMessage);
-            sockets.erase(sockets.begin() + i--);
-            Packet p(PacketTypes::TEXT, disconnectedMessage, "Disconnect message.");
-            SendPacketToAll(p);
-            break;
-          }
-          case PacketTypes::LOGIN:
-          {
-            sockets[i].user = p.GetData();
-            std::string str2 = sockets[i].user;
-            str2 += " has joined.";
-            TraceLog::Log(TRACE_LEVEL::NETWORK, str2);
-            Packet pa(PacketTypes::TEXT, str2, "Login message.");
-            SendPacketToAll(pa);
-            break;
-          }
-          case PacketTypes::VERSION:
-          {
-            std::string str = p.GetData();
-            if (str == version)
+            case PacketTypes::TEXT:
             {
-              Packet pack(PacketTypes::TEXT, "Correct");
-              SendPacketToClient(pack, i);
+              std::string str = p.GetData();
+              TraceLog::Log(TRACE_LEVEL::NETWORK, "Message '" + str + "' received.");
+
+              std::string res;
+              CreateMessage(res, channels[j][i].user, str);
+
+              Packet p(PacketTypes::TEXT, res, str);
+
+              SendPacketToAll(p);
+              break;
+            }
+            case PacketTypes::CSHUT:
+            {
+              std::string disconnectedMessage = channels[j][i].user;
+              disconnectedMessage += " disconnected.";
+              TraceLog::Log(TRACE_LEVEL::NETWORK, disconnectedMessage);
+              channels[j].erase(channels[j].begin() + i--);
+              Packet p(PacketTypes::TEXT, disconnectedMessage, "Disconnect message.");
+              SendPacketToAll(p);
+              break;
+            }
+            case PacketTypes::LOGIN:
+            {
+              channels[j][i].user = p.GetData();
+              channels[j][i].channel = j;
+              std::string str2 = channels[j][i].user;
+              str2 += " has joined.";
+              TraceLog::Log(TRACE_LEVEL::NETWORK, str2);
+              Packet pa(PacketTypes::TEXT, str2, "Login message.");
+              SendPacketToAll(pa);
+              break;
+            }
+            case PacketTypes::VERSION:
+            {
+              std::string str = p.GetData();
+              if (str == version)
+              {
+                Packet pack(PacketTypes::TEXT, "Correct");
+                SendPacket(pack, channels[j][i]);
+              }
+              break;
+            }
+            case PacketTypes::PING:
+            {
+              Packet p(PacketTypes::PING);
+              SendPacket(p, channels[j][i]);
+              break;
+            }
+            case PacketTypes::CH_CHECK:
+            {
+              Packet p(PacketTypes::CH_CHECK, channels[j][i].channel);
+              SendPacket(p, channels[j][i]);
+              break;
+            }
+            case PacketTypes::CH_CHANGE:
+            {
+              int channel = p.GetData<int>();
+              channels[channel].push_back(channels[j][i]);
+              channels[j].erase(channels[j].begin() + i);
+              Packet p(PacketTypes::TEXT, "Successfully moved to channel " + std::to_string(channel) + "!");
+              SendPacket(p, channels[channel].back());
+              --i;
+              break;
+            }
+            default:
+            {
+              TraceLog::Log(TRACE_LEVEL::ERR, "Packet type unrecognized!");
+              break;
             }
           }
-          default:
-          {
-            TraceLog::Log(TRACE_LEVEL::ERR, "Packet type unrecognized!");
-            break;
-          }
         }
-      }
-      else if (res == 0)
-      {
-        
+        else if (res == 0)
+        {
+
+        }
       }
     }
 
+    prev = clock.now();
+    dt += prev - curr;
 
+    if (dt.count() > 300000)
+    {
+      Packet p(PacketTypes::C_CHECK);
+      SendPacketToAll(p);
+
+      dt = prev - curr;
+    }
   }
 }
 

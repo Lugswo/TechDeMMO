@@ -3,6 +3,7 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <string>
+#include <chrono>
 
 #include "Packet.h"
 
@@ -21,6 +22,10 @@ public:
   static void InputText();
 
 private:
-  static bool connected;
+  static bool connected, ping, chChange;
   static SOCKET sock;
+
+  static std::chrono::steady_clock clock;
+  static std::chrono::time_point<std::chrono::steady_clock> curr, prev;
+  static std::chrono::duration<double, std::milli> time;
 };

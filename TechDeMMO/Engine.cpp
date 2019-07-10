@@ -4,6 +4,8 @@
 #include <fstream>
 #include <glad.h>
 #include <filesystem>
+#include <chrono>
+#include <thread>
 
 #include "WindowManagement.h"
 #include "InputManager.h"
@@ -20,6 +22,14 @@ bool Engine::successfullyOpened;
 Engine::Settings Engine::settings;
 int Engine::Settings::screenH, Engine::Settings::screenW;
 std::string Engine::Settings::ip, Engine::Settings::user;
+
+std::chrono::steady_clock Engine::clock;
+std::chrono::time_point<std::chrono::steady_clock> Engine::curr, Engine::previous, Engine::wait, Engine::wait2;
+std::chrono::duration<double, std::nano> Engine::dt, Engine::counter;
+
+static const int FRAME_RATE = 144;
+static const double FRAME_TIME = (1 / (double)FRAME_RATE) * 1000000000;
+static double FPS;
 
 void Engine::SaveSettings()
 {
@@ -121,6 +131,8 @@ void Engine::Init()
   }
 
   TraceLog::Log(TRACE_LEVEL::IMPORTANT, "Game successfully started.");
+
+  Client::Init(settings.ip);
   successfullyOpened = true;
 }
 
@@ -135,16 +147,43 @@ void Engine::Update()
   {
     while (!glfwWindowShouldClose(window))
     {
+      // framerate limiter
+      curr = clock.now();
+      dt = curr - previous;
+
+      if (dt.count() < FRAME_TIME)
+      {
+        std::chrono::duration<double, std::nano> delta_ms(FRAME_TIME - dt.count() - 1800000);
+        auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(delta_ms);
+        std::this_thread::sleep_for(std::chrono::nanoseconds(dur.count()));
+
+        wait = clock.now();
+        counter = wait - curr;
+
+        if (counter.count() < FRAME_TIME)
+        {
+          std::chrono::duration<double, std::nano> delta_ms2(FRAME_TIME - dt.count() - counter.count());
+          auto dur2 = std::chrono::duration_cast<std::chrono::nanoseconds>(delta_ms2);
+
+          wait2 = clock.now();
+          counter = wait2 - wait;
+
+          while (counter.count() < dur2.count())
+          {
+            wait2 = clock.now();
+            counter = wait2 - wait;
+          }
+        }
+      }
+
+      previous = clock.now();
+      std::chrono::duration<double, std::nano> sleepTime = previous - curr;
+
       glfwPollEvents();
 
       if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
       {
         glfwSetWindowShouldClose(window, true);
-      }
-
-      if (InputManager::KeyPress(GLFW_KEY_F7))
-      {
-        Client::Init(settings.ip);
       }
 
       Client::Update();

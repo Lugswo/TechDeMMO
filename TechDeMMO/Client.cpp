@@ -9,8 +9,11 @@
 
 #define PORT "25565"
 
-bool Client::connected = false;
+bool Client::connected = false, Client::ping = false, Client::chChange = false;
 SOCKET Client::sock;
+std::chrono::steady_clock Client::clock;
+std::chrono::time_point<std::chrono::steady_clock> Client::curr, Client::prev;
+std::chrono::duration<double, std::milli> Client::time;
 
 static char buf[1024];
 
@@ -127,26 +130,50 @@ void Client::InputText()
 {
   while (true)
   {
-    std::string str;
-    std::getline(std::cin, str);
+    if (!chChange)
+    {
+      std::string str;
+      std::getline(std::cin, str);
 
-    if (str.front() == '/')
-    {
-      if (str == "/exit")
+      if (str.front() == '/')
       {
-        Engine::CloseWindow();
+        if (str == "/exit")
+        {
+          Engine::CloseWindow();
+        }
+        else if (str == "/ping")
+        {
+          ping = true;
+        }
+        else if (str == "/change")
+        {
+          Packet check(PacketTypes::CH_CHECK);
+          SendPacket(check);
+          chChange = true;
+        }
+        else
+        {
+          std::cout << "Command not recognized." << std::endl;
+        }
       }
-    }
-    else if (str != "")
-    {
-      Packet p(PacketTypes::TEXT, str, str);
-      SendPacket(p);
+      else if (str != "")
+      {
+        Packet p(PacketTypes::TEXT, str, str);
+        SendPacket(p);
+      }
     }
   }
 }
 
 void Client::Update()
 {
+  if (ping)
+  {
+    Packet p(PacketTypes::PING);
+    SendPacket(p);
+    prev = clock.now();
+    ping = false;
+  }
   ReceivePacket();
 
   if (InputManager::KeyPress(GLFW_KEY_4))
@@ -180,6 +207,40 @@ void Client::ReceivePacket()
           std::cout << p.GetData() << std::endl;
           break;
         }
+        case PacketTypes::C_CHECK:
+        {
+          TraceLog::Log(TRACE_LEVEL::NETWORK, "Received connectivity check packet.");
+          break;
+        }
+        case PacketTypes::PING:
+        {
+          curr = clock.now();
+          time = curr - prev;
+          std::string msg = "Ping is ";
+          msg += std::to_string(static_cast<int>(time.count()));
+          msg += ".";
+          TraceLog::Log(TRACE_LEVEL::INFO, msg);
+          std::cout << msg << std::endl;
+
+          ping = false;
+          break;
+        }
+        case PacketTypes::CH_CHECK:
+        {
+          int channel = p.GetData<int>();
+          std::cout << "Enter which channel you would like to switch to. (You are currently on channel " << channel << ")" << std::endl;
+          int newch = 0;
+          std::cin >> newch;
+          Packet p(PacketTypes::CH_CHANGE, newch);
+          SendPacket(p);
+          chChange = false;
+          break;
+        }
+        default:
+        {
+          TraceLog::Log(TRACE_LEVEL::WARN, "Packet type not recognized!");
+          break;
+        }
       }
     }
   }
@@ -190,9 +251,22 @@ void Client::SendPacket(Packet &p)
   int res = send(sock, p, p.GetSize(), 0);
 
   if (res == SOCKET_ERROR)
-    TraceLog::Log(TRACE_LEVEL::ERR, "Failed to send message '" + p.GetDesc() + "'.  Error code " + std::to_string(WSAGetLastError()) + ".");
+  {
+    std::string msg = "Failed to send message '";
+    msg += p.GetDesc();
+    msg += "'.  Error code ";
+    msg += std::to_string(WSAGetLastError());
+    msg += ".  Closing game.";
+    TraceLog::Log(TRACE_LEVEL::FATAL, msg);
+    Engine::CloseWindow();
+  }
   else
-    TraceLog::Log(TRACE_LEVEL::NETWORK, "Sent message '" + p.GetDesc() + "'.");
+  {
+    std::string msg = "Sent message '";
+    msg += p.GetDesc();
+    msg += "'.";
+    TraceLog::Log(TRACE_LEVEL::NETWORK, msg);
+  }
 }
 
 void Client::Shutdown()

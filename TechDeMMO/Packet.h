@@ -79,6 +79,7 @@ public:
     const char * g = "e";
     char * temp = reinterpret_cast<char *>(beginData + sizeof(PacketTypes));
     memcpy(temp, g, 1);
+    desc = "";
 
     data = reinterpret_cast<char *>(temp);
   }
@@ -103,6 +104,13 @@ public:
     if (desc == "")
       return "No description given.";
     return desc;
+  }
+
+  template <typename T>
+  T& GetData() const
+  {
+    T *ptr = reinterpret_cast<T *>(data);
+    return *ptr;
   }
 
 private:

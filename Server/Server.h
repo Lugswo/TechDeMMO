@@ -4,6 +4,7 @@
 #include <WS2tcpip.h>
 #include <vector>
 #include <string>
+#include <chrono>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -19,7 +20,6 @@ public:
   static void Shutdown();
 
   static void SendPacketToAll(Packet &p);
-  static void SendPacketToClient(Packet &p, int i);
 
 private:
   Server() {};
@@ -35,14 +35,22 @@ private:
 
     SOCKET socket;
     std::string user;
+    unsigned channel;
   };
 
   static void SendPacket(Packet &p, S_Client &cl, int i);
 
   static void CreateMessage(std::string &, const std::string&, const std::string&);
 
-  static bool successfullyOpened;
-  static SOCKET sock;
+  static std::vector<std::vector<S_Client>> channels;
+  //static std::vector<S_Client> sockets;
 
-  static std::vector<S_Client> sockets;
+  static std::chrono::steady_clock clock;
+  static std::chrono::time_point<std::chrono::steady_clock> curr, prev;
+  static std::chrono::duration<double, std::milli> dt, counter;
+
+  static void InputText();
+
+  static bool successfullyOpened, running;
+  static SOCKET sock;
 };

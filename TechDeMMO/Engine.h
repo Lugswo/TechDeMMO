@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <chrono>
 
 class Engine
 {
@@ -19,8 +20,8 @@ public:
       screenW = 1366;
       screenH = 768;
 
-      ip = "192.168.1.puturiphere";
-      user = "NONAME";
+      ip = "47.144.140.166";
+      user = "someone stupid";
     }
 
     static int screenW, screenH;
@@ -44,4 +45,8 @@ private:
 
   static void SaveSettings();
   static bool LoadSettings();
+
+  static std::chrono::steady_clock clock;
+  static std::chrono::time_point<std::chrono::steady_clock> curr, previous, wait, wait2;
+  static std::chrono::duration<double, std::nano> dt, counter;
 };

@@ -2,4 +2,4 @@
 
 #include <string>
 
-static std::string version = "0.0.0.0.4";
+static std::string version = "0.0.0.0.5";

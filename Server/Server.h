@@ -19,8 +19,6 @@ public:
   static void Update();
   static void Shutdown();
 
-  static void SendPacketToAll(Packet &p);
-
 private:
   Server() {};
   ~Server() {};
@@ -39,6 +37,8 @@ private:
   };
 
   static void SendPacket(Packet &p, S_Client &cl, int i);
+  static void SendPacketToAll(Packet &p);
+  static void SendPacketToChannel(Packet &p, int ch);
 
   static void CreateMessage(std::string &, const std::string&, const std::string&);
 

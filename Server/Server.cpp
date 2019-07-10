@@ -19,6 +19,8 @@ std::chrono::duration<double, std::milli> Server::dt, Server::counter;
 
 const int channelNum = 5;
 
+#define CURR channels[j][i]
+
 void Server::Init(void)
 {
   WSADATA wsa_data;
@@ -184,6 +186,14 @@ void Server::SendPacketToAll(Packet &p)
   }
 }
 
+void Server::SendPacketToChannel(Packet &p, int ch)
+{
+  for (int i = 0; i < channels[ch].size(); ++i)
+  {
+    SendPacket(p, channels[ch][i], i);
+  }
+}
+
 void Server::Update()
 {
   int res;
@@ -267,7 +277,7 @@ void Server::Update()
 
               Packet p(PacketTypes::TEXT, res, str);
 
-              SendPacketToAll(p);
+              SendPacketToChannel(p, channels[j][i].channel);
               break;
             }
             case PacketTypes::CSHUT:
@@ -320,6 +330,8 @@ void Server::Update()
               channels[j].erase(channels[j].begin() + i);
               Packet p(PacketTypes::TEXT, "Successfully moved to channel " + std::to_string(channel) + "!");
               SendPacket(p, channels[channel].back());
+              Packet p2(PacketTypes::TEXT, CURR.user + " has joined channel " + std::to_string(channel) + ".");
+              SendPacketToChannel(p2, channel);
               --i;
               break;
             }

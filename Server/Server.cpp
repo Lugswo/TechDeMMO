@@ -277,7 +277,7 @@ void Server::Update()
 
               Packet p(PacketTypes::TEXT, res, str);
 
-              SendPacketToChannel(p, channels[j][i].channel);
+              SendPacketToChannel(p, j);
               break;
             }
             case PacketTypes::CSHUT:
@@ -330,7 +330,8 @@ void Server::Update()
               channels[j].erase(channels[j].begin() + i);
               Packet p(PacketTypes::TEXT, "Successfully moved to channel " + std::to_string(channel) + "!");
               SendPacket(p, channels[channel].back());
-              Packet p2(PacketTypes::TEXT, CURR.user + " has joined channel " + std::to_string(channel) + ".");
+              channels[channel].back().channel = channel;
+              Packet p2(PacketTypes::TEXT, channels[channel].back().user + " has joined channel " + std::to_string(channel) + ".");
               SendPacketToChannel(p2, channel);
               --i;
               break;

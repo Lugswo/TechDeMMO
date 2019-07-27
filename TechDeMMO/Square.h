@@ -2,41 +2,76 @@
 
 #include <glad.h>
 
-class FrameBufferSquare
+#include "Shader.h"
+#include "Texture.h"
+
+class Square
 {
 public:
-  FrameBufferSquare(GLuint text);
-  void draw();
-  void UntexturedDraw();
-  void TexturedDraw();
+  Square();
+  Square(const std::string &);
+  Square(const std::string &, const std::string &);
+  ~Square();
 
-  Shader *GetShader()
+  virtual void Draw();
+
+  Shader &GetShader()
   {
     return shader;
   }
 
-private:
-  //to consolidate space a square only needs 4 vertices to make 2 triangles
-  float vertices[24] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-      // positions   // texCoords
-      -1.0f,  1.0f,  0.0f, 1.0f,
-      -1.0f, -1.0f,  0.0f, 0.0f,
-       1.0f, -1.0f,  1.0f, 0.0f,
+  Texture &GetTexture()
+  {
+    return texture;
+  }
 
-      -1.0f,  1.0f,  0.0f, 1.0f,
-       1.0f, -1.0f,  1.0f, 0.0f,
-       1.0f,  1.0f,  1.0f, 1.0f
-  };  //however the draw function still needs to draw 2 triangles, with the indices as ofsets of the vertices
+protected:
+  unsigned int EBO; //element buffer object, for more than 3 sided shapes
+  unsigned int VAO; //vertex array object object
+  unsigned int VBO; //vertex buffer object
+
+  float vertices[36] =
+  {  //position            //color?         //texture coords 
+    0.5f,  0.5f, 1.0f,   1.0f, 1.0f, 1.0f, 1.f, 1.0f, 1.0f,                            //top right of square
+    0.5f, -0.5f, 1.0f,   1.0f, 1.0f, 1.0f, 1.f, 1.0f, 0.0f,                            //bottom right
+    -0.5f, -0.5f, 1.0f,  1.0f, 1.0f, 1.0f, 1.f, 0.0f, 0.0f,                            //bottum left
+    -0.5f,  0.5f, 1.0f,  1.0f, 1.0f, 1.0f, 1.f, 0.0f, 1.0f                            //top left
+  };
+
+private:
   unsigned int indices[6] =
   {
     0, 1, 3, //the first triangle
     1, 2, 3  //the second triangle
   };
 
-  unsigned int EBO; //element buffer object, for more than 3 sided shapes
-  unsigned int VAO; //vertex array object object
-  unsigned int VBO; //vertex buffer object
+  Shader shader;
+  Texture texture;
+};
 
-  Shader *shader; //standard shader program
-  GLuint texture;
+class FrameBufferSquare : public Square
+{
+public:
+  FrameBufferSquare(GLuint text) : Square("FrameBuffer")
+  {
+      //  janky way of setting this to full screen size
+    vertices[0] = 1.f;
+    vertices[1] = 1.f;
+    vertices[9] = 1.f;
+    vertices[10] = -1.f;
+    vertices[18] = -1.f;
+    vertices[19] = -1.f;
+    vertices[27] = -1.f;
+    vertices[28] = 1.f;
+    Square::GetTexture().SetID(text);
+
+      //  setting them in vram
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //reinitiate the buffer data, with the points, modified
+  }
+
+  void Draw() override;
+
+private:
+
 };

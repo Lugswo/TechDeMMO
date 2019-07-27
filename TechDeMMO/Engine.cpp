@@ -17,6 +17,8 @@
 
 #include "SharedVariables.h"
 
+#include "Shader.h"
+
 GLFWwindow * Engine::window;
 bool Engine::successfullyOpened;
 Engine::Settings Engine::settings;
@@ -121,6 +123,13 @@ void Engine::Init()
   }
 
   GraphicsEngine::Init(settings.screenW, settings.screenH);
+
+  if (!GraphicsEngine::LoadedCorrectly())
+  {
+    TraceLog::Log(TRACE_LEVEL::FATAL, "Something went wrong initializing the graphics engine.  Shutting down.");
+    return;
+  }
+
   window = GraphicsEngine::GetWindow();
   glfwSetKeyCallback(window, key_callback);
 
@@ -130,10 +139,10 @@ void Engine::Init()
     return;
   }
 
-  TraceLog::Log(TRACE_LEVEL::IMPORTANT, "Game successfully started.");
-
   Client::Init(settings.ip);
   successfullyOpened = true;
+
+  TraceLog::Log(TRACE_LEVEL::IMPORTANT, "Game successfully started.");
 }
 
 void Engine::CloseWindow()
@@ -180,11 +189,6 @@ void Engine::Update()
       std::chrono::duration<double, std::nano> sleepTime = previous - curr;
 
       glfwPollEvents();
-
-      if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-      {
-        glfwSetWindowShouldClose(window, true);
-      }
 
       Client::Update();
       GraphicsEngine::Update(1.f);

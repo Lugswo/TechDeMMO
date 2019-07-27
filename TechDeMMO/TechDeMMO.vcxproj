@@ -133,6 +133,9 @@
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Square.cpp" />
+    <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TraceLog.cpp" />
     <ClCompile Include="WindowManagement.cpp" />
   </ItemGroup>
@@ -151,8 +154,16 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SharedVariables.h" />
     <ClInclude Include="Square.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="TraceLog.h" />
     <ClInclude Include="WindowManagement.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FrameBuffer.fs" />
+    <None Include="FrameBuffer.vs" />
+    <None Include="Texture.fs" />
+    <None Include="Texture.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

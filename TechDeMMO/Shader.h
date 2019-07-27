@@ -1,7 +1,10 @@
 #pragma once
 
-#include <vector>
+#include <map>
 #include <string>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Shader
 {
@@ -11,14 +14,23 @@ public:
 
   const unsigned GetShader() const;
   void Use() const;
-  Shader operator=(Shader &rhs);
+  //Shader operator=(Shader &rhs);
+
+    //  Uniforms
+  void Uniform(const std::string &, const int);
+  void Uniform(const std::string & name, glm::mat4 &mat);
+
+  static void UniformToAllShaders(const std::string &, glm::mat4 &);
 
 private:
   Shader();
-  Shader(unsigned int);
+  Shader(const std::string &filename, int);
   unsigned id;
-  std::string vertex, frag;
+  std::string filename;
   bool loaded = true;
 
-  static std::vector<Shader> shaders;
+  unsigned CompileVertex(const std::ifstream & file);
+  unsigned CompileFragment(const std::ifstream & file);
+
+  static std::map<std::string, unsigned> shaders;
 };

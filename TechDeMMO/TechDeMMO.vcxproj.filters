@@ -58,6 +58,15 @@
     <Filter Include="Source Files\Systems\Graphics\Shaders">
       <UniqueIdentifier>{0a825a37-aff5-4a32-8122-e783bdae6314}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Systems\Graphics\Shaders\FrameBuffer">
+      <UniqueIdentifier>{0e81a217-d652-4dbb-9d25-60a58f353fa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Systems\Graphics\External">
+      <UniqueIdentifier>{f92bc742-3f3a-49f4-9d4a-8fa585bd9820}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Systems\Graphics\Shaders\Texture">
+      <UniqueIdentifier>{97a041b3-76b9-4c03-bc4c-33e9a7140873}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -104,6 +113,15 @@
     </ClCompile>
     <ClCompile Include="Shader.cpp">
       <Filter>Source Files\Systems\Graphics\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Square.cpp">
+      <Filter>Source Files\Systems\Graphics\Low Level</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files\Systems\Graphics\Low Level</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image.cpp">
+      <Filter>Source Files\Systems\Graphics\External</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -155,5 +173,25 @@
     <ClInclude Include="Shader.h">
       <Filter>Source Files\Systems\Graphics\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Source Files\Systems\Graphics\Low Level</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Source Files\Systems\Graphics\External</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FrameBuffer.fs">
+      <Filter>Source Files\Systems\Graphics\Shaders\FrameBuffer</Filter>
+    </None>
+    <None Include="FrameBuffer.vs">
+      <Filter>Source Files\Systems\Graphics\Shaders\FrameBuffer</Filter>
+    </None>
+    <None Include="Texture.fs">
+      <Filter>Source Files\Systems\Graphics\Shaders\Texture</Filter>
+    </None>
+    <None Include="Texture.vs">
+      <Filter>Source Files\Systems\Graphics\Shaders\Texture</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -4,6 +4,11 @@
 
 #include <GLFW/glfw3.h>
 #include <glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "Square.h"
 
 class GraphicsEngine
 {
@@ -19,17 +24,27 @@ public:
   static void Update(float dt);
   static void Restart();
 
+  static bool LoadedCorrectly()
+  {
+    return loaded;
+  }
+
 private:
+  static void WindowResize(GLFWwindow *, int w, int h);
+  static void GenerateFrameBuffer();
+
   static GLFWwindow *window;
 
   static GLuint fbo;
-  static GLuint colorBuffers[2];
+  static GLuint colorBuffer;
 
-  //static FrameBufferSquare *square;
-  //static FrameBufferSquare *lightSquare;
-
-  static GLuint pingpongFBO[2];
-  static GLuint pingpongBuffer[2];
+  static FrameBufferSquare *square;
 
   static int sWidth, sHeight;
+
+  static bool loaded;
+
+  static glm::mat4 proj;
+
+  static Square *guy;
 };

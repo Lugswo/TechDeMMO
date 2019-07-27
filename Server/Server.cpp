@@ -93,13 +93,18 @@ void Server::Init(void)
   for (int i = 0; i < channelNum; ++i)
   {
     channels.push_back(std::vector<S_Client>());
+
+    TraceLog::Log(TRACE_LEVEL::INFO, "Channel " + std::to_string(i) + " initialized.");
   }
+  TraceLog::Log(TRACE_LEVEL::INFO, "Channels successfully initialized.");
 
   std::thread t(InputText);
   t.detach();
 
   successfullyOpened = true;
   running = true;
+
+  TraceLog::Log(TRACE_LEVEL::INFO, "Server started successfully.");
 }
 
 void Server::InputText()

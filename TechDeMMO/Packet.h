@@ -102,7 +102,7 @@ public:
   const std::string& GetDesc() const
   {
     if (desc == "")
-      return "No description given.";
+      return defDesc;
     return desc;
   }
 
@@ -122,6 +122,8 @@ private:
 
     //  not sent with the packet so safe to store as many descriptors as u want
   std::string desc;
+
+  const std::string defDesc = "No description given.";
 
   int size = 0;
 };

@@ -4,7 +4,7 @@
 #include <ctime>
 #include <algorithm>
 
-TRACE_LEVEL TraceLog::level = TRACE_LEVEL::VERBOSE;
+TRACE_LEVEL TraceLog::level = TRACE_LEVEL::INFO;
 std::ofstream TraceLog::file;
 bool TraceLog::consoleOut = true;
 bool TraceLog::generateTrace = true;

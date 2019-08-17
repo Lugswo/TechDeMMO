@@ -25,6 +25,10 @@ public:
     return texture;
   }
 
+  void SetTransform(glm::mat4);
+
+  void SendTransform();
+
 protected:
   unsigned int EBO; //element buffer object, for more than 3 sided shapes
   unsigned int VAO; //vertex array object object
@@ -47,6 +51,8 @@ private:
 
   Shader shader;
   Texture texture;
+
+  glm::mat4 t;
 };
 
 class FrameBufferSquare : public Square

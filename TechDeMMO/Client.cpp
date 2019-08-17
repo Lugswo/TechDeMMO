@@ -7,6 +7,8 @@
 #include "Engine.h"
 #include "SharedVariables.h"
 
+#include "GameObjectFactory.h"
+
 #define PORT "25565"
 
 bool Client::connected = false, Client::ping = false, Client::chChange = false;
@@ -220,9 +222,47 @@ void Client::ReceivePacket()
           msg += std::to_string(static_cast<int>(time.count()));
           msg += ".";
           TraceLog::Log(TRACE_LEVEL::INFO, msg);
-          std::cout << msg << std::endl;
 
           ping = false;
+          break;
+        }
+        case PacketTypes::LOGIN:
+        {
+          std::string s = p.GetItemPtr<char>();
+
+          glm::vec2 pos = p.GetItem<glm::vec2>();
+
+          unsigned i = p.GetItem<unsigned>();
+
+          GameObjectFactory::CreatePlayer(false, pos, i);
+
+          break;
+        }
+        case PacketTypes::P_DISC:
+        {
+          std::string s = p.GetItemPtr<char>();
+          TraceLog::Log(TRACE_LEVEL::NETWORK, s);
+
+          unsigned i = p.GetItem<unsigned>();
+          GameObjectFactory::DeletePlayer(i);
+          break;
+        }
+        case PacketTypes::INIT:
+        {
+          glm::vec2 pos = p.GetItem<glm::vec2>();
+          unsigned i = p.GetItem<int>();
+
+          GameObjectFactory::CreatePlayer(true, pos, i);
+
+          int s = p.GetItem<int>();
+
+          for (int i = 0; i < s; ++i)
+          {
+            glm::vec2 position = p.GetItem<glm::vec2>();
+            unsigned u = p.GetItem<unsigned>();
+            GameObjectFactory::CreatePlayer(false, position, u);
+          }
+
           break;
         }
         case PacketTypes::CH_CHECK:

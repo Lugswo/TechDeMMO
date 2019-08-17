@@ -18,9 +18,9 @@ public:
 
     //  Uniforms
   void Uniform(const std::string &, const int);
-  void Uniform(const std::string & name, glm::mat4 &mat);
+  void Uniform(const std::string & name, const glm::mat4 &mat);
 
-  static void UniformToAllShaders(const std::string &, glm::mat4 &);
+  static void UniformToAllShaders(const std::string &, const glm::mat4 &);
 
 private:
   Shader();

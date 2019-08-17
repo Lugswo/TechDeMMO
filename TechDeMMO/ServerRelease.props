@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <IncludePath>$(SolutionDir)lib\imgui-master;$(SolutionDir)lib\glad;$(SolutionDir)lib\glm-0.9.9.0;$(SolutionDir)lib\KHR;$(SolutionDir)lib\glfw\include;$(SolutionDir)lib\rapidjson\include;$(SolutionDir)lib\rrtr\include;$(SolutionDir)lib\FMOD;$(SolutionDir)lib\TMXLoader;$(SolutionDir)lib\freetype;$(SolutionDir)lib\Spine\spine-c\include;$(SolutionDir)TechDeMMO;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib\glfw\lib-vc2015;$(SolutionDir)lib\rrtr\lib\Release;$(SolutionDir)lib\FMOD\Libraries;$(SolutionDir)lib\freetype\freetype\lib;$(SolutionDir)lib\Spine\spine-c\src;$(SolutionDir)TechDeMMO\x64\Release\Client;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glfw3.lib;rttr_core.lib;fmod64_vc.lib;freetype.lib;TraceLog.obj;Packet.obj;InputManager.obj;RandomEngine.obj;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(SolutionDir)lib\glfw\lib-vc2015\glfw3.dll" "$(TargetDir)glfw3.dll" /Y
+copy "$(SolutionDir)lib\rrtr\bin\rttr_core.dll" "$(TargetDir)rttr_core.dll" /Y
+copy "$(SolutionDir)lib\FMOD\Libraries\fmod64.dll" "$(TargetDir)fmod64.dll" /Y
+</Command>
+    </PostBuildEvent>
+    <ClCompile>
+      <PreprocessorDefinitions>GLFW_DLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>

@@ -14,10 +14,10 @@
 #include "GraphicsEngine.h"
 #include "FileUtils.h"
 #include "Client.h"
+#include "GameObjectFactory.h"
+#include "ActionManager.h"
 
 #include "SharedVariables.h"
-
-#include "Shader.h"
 
 GLFWwindow * Engine::window;
 bool Engine::successfullyOpened;
@@ -139,6 +139,7 @@ void Engine::Init()
     return;
   }
 
+  GameObjectFactory::Init();
   Client::Init(settings.ip);
   successfullyOpened = true;
 
@@ -191,6 +192,7 @@ void Engine::Update()
       glfwPollEvents();
 
       Client::Update();
+      GameObjectFactory::Update((float)(sleepTime + dt).count() / 1000000000);
       GraphicsEngine::Update(1.f);
 
       glfwSwapBuffers(window);

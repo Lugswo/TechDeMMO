@@ -86,6 +86,53 @@ public:
 
   ~Packet();
 
+  template <typename T>
+  void AddItem(T d)
+  {
+    char *newDat = new char[size + sizeof(T)];
+    ZeroMemory(newDat, size + sizeof(T));
+    memcpy(newDat, beginData, size);
+
+    char *temp = beginData;
+    beginData = newDat;
+    data = newDat + sizeof(PacketTypes);
+
+    T *t = reinterpret_cast<T*>(beginData + size);
+    *t = d;
+
+    size += sizeof(T);
+    delete[] temp;
+  }
+
+  template <typename T>
+  const T &GetItem()
+  {
+    T * temp = reinterpret_cast<T *>(data + offset);
+    offset += sizeof(T);
+
+    return *temp;
+  }
+
+  template <typename T>
+  const T *GetItemPtr()
+  {
+    T * temp = reinterpret_cast<T *>(data + offset);
+    offset += sizeof(T);
+
+    return temp;
+  }
+
+  template <>
+  const char * GetItemPtr<char>()
+  {
+    char * temp = data + offset;
+    int t = strlen(temp);
+
+    offset += t;
+    offset += 1;
+    return temp;
+  }
+
   const char * GetData() const;
   const int GetSize() const
   {
@@ -126,4 +173,6 @@ private:
   const std::string defDesc = "No description given.";
 
   int size = 0;
+
+  int offset = 0;
 };

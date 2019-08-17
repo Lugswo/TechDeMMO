@@ -42,12 +42,12 @@ bool InputManager::KeyPress(int key)
 //{
 //
 //}
-//
-//bool InputManager::KeyDown(int key)
-//{
-//
-//}
-//
+
+bool InputManager::KeyDown(int key)
+{
+  return keyboard[key].d;
+}
+
 //bool InputManager::KeyDown(int key, int key2)
 //{
 //
@@ -75,12 +75,14 @@ bool InputManager::KeyPress(int key)
 
 void InputManager::PushKey(int key)
 {
-  keyboard[key].p = true;
+  keyboard[key].p = keyboard[key].d = true;
+  keyboard[key].u = false;
   keysToUpdate.push_back(keyboard + key);
 }
 
 void InputManager::RelKey(int key)
 {
-  keyboard[key].r = true;
+  keyboard[key].r = keyboard[key].u = true;
+  keyboard[key].d = false;
   keysToUpdate.push_back(keyboard + key);
 }

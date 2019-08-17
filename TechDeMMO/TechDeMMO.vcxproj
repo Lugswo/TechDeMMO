@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -120,6 +120,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ActionManager.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Engine.cpp" />
@@ -132,14 +133,20 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="PacketHandler.cpp" />
+    <ClCompile Include="PlayerComponent.cpp" />
+    <ClCompile Include="RandomEngine.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="SpriteComponent.cpp" />
     <ClCompile Include="Square.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TraceLog.cpp" />
+    <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="WindowManagement.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActionManager.h" />
+    <ClInclude Include="ActionTypes.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Engine.h" />
@@ -151,12 +158,16 @@
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="PacketTypes.h" />
+    <ClInclude Include="PlayerComponent.h" />
+    <ClInclude Include="RandomEngine.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SharedVariables.h" />
+    <ClInclude Include="SpriteComponent.h" />
     <ClInclude Include="Square.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TraceLog.h" />
+    <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="WindowManagement.h" />
   </ItemGroup>
   <ItemGroup>

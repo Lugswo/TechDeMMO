@@ -16,6 +16,9 @@
     <Filter Include="Source Files\Socket">
       <UniqueIdentifier>{51f295aa-f8f1-49cb-8cdf-d53716743444}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shared">
+      <UniqueIdentifier>{a578f4bf-862f-485d-8377-aec69d6b270a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

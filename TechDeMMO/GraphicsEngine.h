@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <map>
+
 #include "Square.h"
 
 class GraphicsEngine
@@ -29,6 +31,10 @@ public:
     return loaded;
   }
 
+  static Square & CreateSprite(const std::string &, unsigned &i, const std::string & shader = "Texture");
+
+  static void RemoveSprite(unsigned i);
+
 private:
   static void WindowResize(GLFWwindow *, int w, int h);
   static void GenerateFrameBuffer();
@@ -44,7 +50,11 @@ private:
 
   static bool loaded;
 
+  static std::map<int, Square> sprites;
+
   static glm::mat4 proj;
 
   static Square *guy;
+
+  static unsigned id;
 };

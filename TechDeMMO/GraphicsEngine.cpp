@@ -14,6 +14,7 @@ GLuint GraphicsEngine::fbo, GraphicsEngine::colorBuffer;
 FrameBufferSquare *GraphicsEngine::square;
 
 int GraphicsEngine::sWidth, GraphicsEngine::sHeight;
+unsigned GraphicsEngine::id;
 
 bool GraphicsEngine::loaded = true;
 
@@ -21,15 +22,16 @@ glm::mat4 GraphicsEngine::proj;
 
 Square *GraphicsEngine::guy;
 
+std::map<int, Square> GraphicsEngine::sprites;
+
 void GraphicsEngine::Init(int w, int h)
 {
+  id = 0;
   window = CreateGLFWWindow(w, h);
 
   glDepthFunc(GL_LESS);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  guy = new Square("Texture", "ArtAssets/bub.png");
 
   WindowResize(window, w, h);
 
@@ -111,12 +113,13 @@ void GraphicsEngine::Update(float dt)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glActiveTexture(GL_TEXTURE0);
 
-  glm::mat4 t = glm::mat4(1.0f);
-  t = glm::translate(t, glm::vec3(0.f, 0.234234f, 0.f));
-  guy->GetShader().Uniform("projection", proj);
-  guy->GetShader().Uniform("model", t);  
+  Shader::UniformToAllShaders("projection", proj);
 
-  guy->Draw();
+  for (auto itr = sprites.begin(); itr != sprites.end(); ++itr)
+  {
+    (*itr).second.SendTransform();
+    (*itr).second.Draw();
+  }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
@@ -134,4 +137,18 @@ void GraphicsEngine::Restart()
   delete square;
 
   GenerateFrameBuffer();
+}
+
+Square& GraphicsEngine::CreateSprite(const std::string & str, unsigned &i, const std::string & shader)
+{
+  ++id;
+  i = id;
+  sprites.insert(std::pair<int, Square>(id, Square(shader, str)));
+  //sprites[id] = Square(shader, str);
+  return sprites[id];
+}
+
+void GraphicsEngine::RemoveSprite(unsigned i)
+{
+  sprites.erase(i);
 }

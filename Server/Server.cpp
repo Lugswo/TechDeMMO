@@ -7,6 +7,7 @@
 #include "TraceLog.h"
 #include "Packet.h"
 #include "SharedVariables.h"
+#include "RandomEngine.h"
 
 bool Server::successfullyOpened = false, Server::running;
 SOCKET Server::sock;
@@ -16,6 +17,8 @@ std::vector<std::vector<Server::S_Client>> Server::channels;
 std::chrono::steady_clock Server::clock;
 std::chrono::time_point<std::chrono::steady_clock> Server::curr, Server::prev;
 std::chrono::duration<double, std::milli> Server::dt, Server::counter;
+
+unsigned Server::id;
 
 const int channelNum = 5;
 
@@ -28,6 +31,7 @@ void Server::Init(void)
   int res;
 
   TraceLog::Init();
+  RandomEngine::Init();
 
   // Initialize Winsock
   res = WSAStartup(MAKEWORD(2, 2), &wsa_data);
@@ -105,6 +109,8 @@ void Server::Init(void)
   running = true;
 
   TraceLog::Log(TRACE_LEVEL::INFO, "Server started successfully.");
+
+  id = 0;
 }
 
 void Server::InputText()
@@ -161,18 +167,12 @@ void Server::SendPacket(Packet &p, S_Client &cl, int i = -1)
 
   if (res == SOCKET_ERROR)
   {
-    TraceLog::Log(TRACE_LEVEL::ERR, "Send failed!  Error code " + std::to_string(WSAGetLastError()) + ".  Disconnecting " + cl.user + ".");
-    if (i != -1)
-      channels[i].erase(channels[i].begin() + i);
-    else
+    for (int i = 0; i < channels[cl.channel].size(); ++i)
     {
-      for (int i = 0; i < channels[cl.channel].size(); ++i)
+      if (channels[cl.channel][i].user == cl.user)
       {
-        if (channels[cl.channel][i].user == cl.user)
-        {
-          channels[cl.channel].erase(channels[cl.channel].begin() + i);
-          break;
-        }
+        channels[cl.channel].erase(channels[cl.channel].begin() + i);
+        break;
       }
     }
   }
@@ -187,6 +187,18 @@ void Server::SendPacketToAll(Packet &p)
     for (int i = 0; i < channels[j].size(); ++i)
     {
       SendPacket(p, channels[j][i], i);
+    }
+  }
+}
+
+void Server::SendPacketToAllBut(Packet &p, S_Client &cl)
+{
+  for (int j = 0; j < channelNum; ++j)
+  {
+    for (int i = 0; i < channels[j].size(); ++i)
+    {
+      if (cl.socket != channels[j][i].socket)
+        SendPacket(p, channels[j][i], i);
     }
   }
 }
@@ -225,7 +237,7 @@ void Server::Update()
     res = select(sock + 1, &rfds, (fd_set *)0, (fd_set *)0, &tv);
     if (res > 0)
     {
-      channels[0].push_back(S_Client());
+      channels[0].push_back(S_Client(++id));
 
       S_Client *csock = &(channels[0].back());
       csock->socket = accept(sock, nullptr, nullptr);
@@ -256,11 +268,12 @@ void Server::Update()
 
     for (int j = 0; j < channelNum; ++j)
     {
-      int size = static_cast<int>(channels[j].size());
-
-      for (int i = 0; i < size; ++i)
+      for (int i = 0; i < channels[j].size(); ++i)
       {
-        res = recv(channels[j][i].socket, recbuf, 1024, 0);
+        if (!channels[j].empty())
+          res = recv(channels[j][i].socket, recbuf, 1024, 0);
+        else
+          res = 0;
 
         if (res > 0)
         {
@@ -290,8 +303,9 @@ void Server::Update()
               std::string disconnectedMessage = channels[j][i].user;
               disconnectedMessage += " disconnected.";
               TraceLog::Log(TRACE_LEVEL::NETWORK, disconnectedMessage);
+              Packet p(PacketTypes::P_DISC, disconnectedMessage, "Disconnect message.");
+              p.AddItem(CURR.id);
               channels[j].erase(channels[j].begin() + i--);
-              Packet p(PacketTypes::TEXT, disconnectedMessage, "Disconnect message.");
               SendPacketToAll(p);
               break;
             }
@@ -299,11 +313,34 @@ void Server::Update()
             {
               channels[j][i].user = p.GetData();
               channels[j][i].channel = j;
+              channels[j][i].position = glm::vec2(RandomEngine::Float(-2.f, 2.f), RandomEngine::Float(-2.f, 2.f));
               std::string str2 = channels[j][i].user;
               str2 += " has joined.";
               TraceLog::Log(TRACE_LEVEL::NETWORK, str2);
-              Packet pa(PacketTypes::TEXT, str2, "Login message.");
-              SendPacketToAll(pa);
+              TraceLog::Log(TRACE_LEVEL::INFO, "Player spawned at " + std::to_string(CURR.position.x) + ", " + std::to_string(CURR.position.y));
+              Packet pa(PacketTypes::LOGIN, str2, "Login message.");
+              pa.AddItem(CURR.position);
+              pa.AddItem(CURR.id);
+              
+              SendPacketToAllBut(pa, channels[j][i]);
+
+              Packet pa2(PacketTypes::INIT, CURR.position);
+              pa2.AddItem(CURR.id);
+
+              int s = channels[j].size() - 1;
+
+              pa2.AddItem(s);
+
+              for (int k = 0; k < channels[i].size(); ++k)
+              {
+                if (channels[j][k].user != CURR.user)
+                {
+                  pa2.AddItem(channels[j][i].position);
+                  pa2.AddItem(CURR.id);
+                }
+              }
+
+              SendPacket(pa2, channels[j][i]);
               break;
             }
             case PacketTypes::VERSION:

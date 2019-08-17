@@ -67,6 +67,15 @@
     <Filter Include="Source Files\Systems\Graphics\Shaders\Texture">
       <UniqueIdentifier>{97a041b3-76b9-4c03-bc4c-33e9a7140873}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Systems\GameObjects\Components\SpriteComponent">
+      <UniqueIdentifier>{9fb77a99-234b-410b-b521-bb49ac8ffa05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Systems\GameObjects\Components\TransformComponent">
+      <UniqueIdentifier>{0c8fc3f6-ade0-4289-bb4d-2b4f5940d2d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Systems\GameObjects\Components\PlayerComponent">
+      <UniqueIdentifier>{1a7ffaf8-30b8-4098-aece-091793e30240}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -77,9 +86,6 @@
     </ClCompile>
     <ClCompile Include="WindowManagement.cpp">
       <Filter>Source Files\Systems\Graphics\Window Management</Filter>
-    </ClCompile>
-    <ClCompile Include="glad.c">
-      <Filter>Source Files\Systems\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="GameObjectFactory.cpp">
       <Filter>Source Files\Systems\GameObjects</Filter>
@@ -95,9 +101,6 @@
     </ClCompile>
     <ClCompile Include="FileUtils.cpp">
       <Filter>Source Files\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Client.cpp">
       <Filter>Source Files\Systems\Networking</Filter>
@@ -123,6 +126,27 @@
     <ClCompile Include="stb_image.cpp">
       <Filter>Source Files\Systems\Graphics\External</Filter>
     </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Source Files\Systems\Graphics\External</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteComponent.cpp">
+      <Filter>Source Files\Systems\GameObjects\Components\SpriteComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformComponent.cpp">
+      <Filter>Source Files\Systems\GameObjects\Components\TransformComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="RandomEngine.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp">
+      <Filter>Source Files\Systems\GameObjects\Components\PlayerComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionManager.cpp">
+      <Filter>Source Files\Systems\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Source Files\Systems\GameObjects\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -139,9 +163,6 @@
     </ClInclude>
     <ClInclude Include="GraphicsEngine.h">
       <Filter>Source Files\Systems\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="TraceLog.h">
-      <Filter>Source Files\Systems\Debug\Trace Log</Filter>
     </ClInclude>
     <ClInclude Include="FileUtils.h">
       <Filter>Source Files\Utilities</Filter>
@@ -178,6 +199,27 @@
     </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>Source Files\Systems\Graphics\External</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformComponent.h">
+      <Filter>Source Files\Systems\GameObjects\Components\TransformComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomEngine.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteComponent.h">
+      <Filter>Source Files\Systems\GameObjects\Components\SpriteComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerComponent.h">
+      <Filter>Source Files\Systems\GameObjects\Components\PlayerComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionManager.h">
+      <Filter>Source Files\Systems\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionTypes.h">
+      <Filter>Source Files\Systems\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="TraceLog.h">
+      <Filter>Source Files\Systems\Debug\Trace Log</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

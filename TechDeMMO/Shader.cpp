@@ -172,14 +172,14 @@ unsigned Shader::CompileFragment(const std::ifstream & file)
   return vertexShader;
 }
 
-void Shader::UniformToAllShaders(const std::string & name, glm::mat4 & mat)
+void Shader::UniformToAllShaders(const std::string & name, const glm::mat4 & mat)
 {
   for (auto itr = shaders.begin(); itr != shaders.end(); ++itr)
   {
     glUseProgram((*itr).second);
     GLint loc = glGetUniformLocation((*itr).second, name.c_str());
     if (loc != -1)
-      glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
+      glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
   }
 }
 
@@ -190,7 +190,7 @@ void Shader::Uniform(const std::string & name, int i)
   glUniform1i(loc, i);
 }
 
-void Shader::Uniform(const std::string & name, glm::mat4 & mat)
+void Shader::Uniform(const std::string & name, const glm::mat4 & mat)
 {
   Use();
   GLint loc = glGetUniformLocation(id, name.c_str());

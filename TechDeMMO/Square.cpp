@@ -2,6 +2,8 @@
 
 Square::Square() : shader("Texture"), texture("ArtAssets/EngineTextures/MissingTexture.png")
 {
+  t = glm::mat4(1.f);
+
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO); //generate the VBO object, holds 1 triangles worth of vertices
   glGenBuffers(1, &EBO); //make the element buffer, that will uses the limited vertices
@@ -26,6 +28,8 @@ Square::Square() : shader("Texture"), texture("ArtAssets/EngineTextures/MissingT
 
 Square::Square(const std::string & f1) : shader(f1), texture("ArtAssets/EngineTextures/MissingTexture.png")
 {
+  t = glm::mat4(1.f);
+
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO); //generate the VBO object, holds 1 triangles worth of vertices
   glGenBuffers(1, &EBO); //make the element buffer, that will uses the limited vertices
@@ -50,6 +54,8 @@ Square::Square(const std::string & f1) : shader(f1), texture("ArtAssets/EngineTe
 
 Square::Square(const std::string &f1, const std::string &f2) : shader(f1), texture(f2)
 {
+  t = glm::mat4(1.f);
+
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO); //generate the VBO object, holds 1 triangles worth of vertices
   glGenBuffers(1, &EBO); //make the element buffer, that will uses the limited vertices
@@ -91,6 +97,17 @@ void Square::Draw()
   glUseProgram(0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0); //refresh the VAO
+}
+
+void Square::SetTransform(glm::mat4 m)
+{
+  t = m;
+}
+
+void Square::SendTransform()
+{
+  shader.Use();
+  shader.Uniform("model", t);
 }
 
 void FrameBufferSquare::Draw()

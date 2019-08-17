@@ -27,10 +27,10 @@ private:
   public:
     Key()
     {
-      r = false;
-      p = false;
+      r = d = p = false;
+      u = true;
     }
-    bool r, p;
+    bool r, p, u, d;
   };
 
   InputManager() {};

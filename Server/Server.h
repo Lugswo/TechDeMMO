@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <chrono>
+#include <glm/glm.hpp>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -26,18 +27,22 @@ private:
   class S_Client
   {
   public:
-    S_Client()
+    S_Client(unsigned i)
     {
       socket = INVALID_SOCKET;
+      id = i;
     }
 
     SOCKET socket;
     std::string user;
-    unsigned channel;
+    unsigned channel, id;
+
+    glm::vec2 position;
   };
 
   static void SendPacket(Packet &p, S_Client &cl, int i);
   static void SendPacketToAll(Packet &p);
+  static void SendPacketToAllBut(Packet &p, S_Client &cl);
   static void SendPacketToChannel(Packet &p, int ch);
 
   static void CreateMessage(std::string &, const std::string&, const std::string&);
@@ -53,4 +58,6 @@ private:
 
   static bool successfullyOpened, running;
   static SOCKET sock;
+
+  static unsigned id;
 };

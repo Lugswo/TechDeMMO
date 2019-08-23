@@ -17,6 +17,7 @@ public:
 
   const glm::mat4 & GetMatrix();
 
+  void SetTranslation(const glm::vec2 &);
   void SetTranslation(const glm::vec3 &);
   void SetScale(const glm::vec2 &);
   void SetRotation(const float);

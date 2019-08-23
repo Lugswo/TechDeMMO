@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glfw3.lib;rttr_core.lib;fmod64_vc.lib;freetype.lib;Packet.obj;InputManager.obj;RandomEngine.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;glfw3.lib;rttr_core.lib;fmod64_vc.lib;freetype.lib;ActionManager.obj;Client.obj;Component.obj;Engine.obj;FileUtils.obj;GameObject.obj;GameObjectFactory.obj;glad.obj;GraphicsEngine.obj;InputManager.obj;Packet.obj;PacketHandler.obj;PlayerComponent.obj;RandomEngine.obj;Shader.obj;SpriteComponent.obj;Square.obj;stb_image.obj;Texture.obj;TraceLog.obj;TransformComponent.obj;WindowManagement.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)lib\glfw\lib-vc2015\glfw3.dll" "$(TargetDir)glfw3.dll" /Y

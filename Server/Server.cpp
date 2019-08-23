@@ -18,6 +18,8 @@ std::chrono::steady_clock Server::clock;
 std::chrono::time_point<std::chrono::steady_clock> Server::curr, Server::prev;
 std::chrono::duration<double, std::milli> Server::dt, Server::counter;
 
+std::vector<glm::vec2> Server::positions;
+
 unsigned Server::id;
 
 const int channelNum = 5;
@@ -169,9 +171,9 @@ void Server::SendPacket(Packet &p, S_Client &cl, int i = -1)
   {
     for (int i = 0; i < channels[cl.channel].size(); ++i)
     {
-      if (channels[cl.channel][i].user == cl.user)
+      if (channels[cl.channel][i].socket == cl.socket)
       {
-        channels[cl.channel].erase(channels[cl.channel].begin() + i);
+        cl.SetDelete();
         break;
       }
     }
@@ -270,129 +272,139 @@ void Server::Update()
     {
       for (int i = 0; i < channels[j].size(); ++i)
       {
-        if (!channels[j].empty())
-          res = recv(channels[j][i].socket, recbuf, 1024, 0);
-        else
-          res = 0;
-
-        if (res > 0)
+        if (!CURR.remove)
         {
-          char *c = new char[1024];
-          memcpy(c, recbuf, 1024);
-          Packet p(c);
+          if (!channels[j].empty())
+            res = recv(channels[j][i].socket, recbuf, 1024, 0);
+          else
+            res = 0;
 
-          PacketTypes t = p.GetType();
-
-          switch (t)
+          if (res > 0)
           {
-            case PacketTypes::TEXT:
+            char *c = new char[1024];
+            memcpy(c, recbuf, 1024);
+            Packet p(c);
+
+            PacketTypes t = p.GetType();
+
+            switch (t)
             {
-              std::string str = p.GetData();
-              TraceLog::Log(TRACE_LEVEL::NETWORK, "Message '" + str + "' received.");
-
-              std::string res;
-              CreateMessage(res, channels[j][i].user, str);
-
-              Packet p(PacketTypes::TEXT, res, str);
-
-              SendPacketToChannel(p, j);
-              break;
-            }
-            case PacketTypes::CSHUT:
-            {
-              std::string disconnectedMessage = channels[j][i].user;
-              disconnectedMessage += " disconnected.";
-              TraceLog::Log(TRACE_LEVEL::NETWORK, disconnectedMessage);
-              Packet p(PacketTypes::P_DISC, disconnectedMessage, "Disconnect message.");
-              p.AddItem(CURR.id);
-              channels[j].erase(channels[j].begin() + i--);
-              SendPacketToAll(p);
-              break;
-            }
-            case PacketTypes::LOGIN:
-            {
-              channels[j][i].user = p.GetData();
-              channels[j][i].channel = j;
-              channels[j][i].position = glm::vec2(RandomEngine::Float(-2.f, 2.f), RandomEngine::Float(-2.f, 2.f));
-              std::string str2 = channels[j][i].user;
-              str2 += " has joined.";
-              TraceLog::Log(TRACE_LEVEL::NETWORK, str2);
-              TraceLog::Log(TRACE_LEVEL::INFO, "Player spawned at " + std::to_string(CURR.position.x) + ", " + std::to_string(CURR.position.y));
-              Packet pa(PacketTypes::LOGIN, str2, "Login message.");
-              pa.AddItem(CURR.position);
-              pa.AddItem(CURR.id);
-              
-              SendPacketToAllBut(pa, channels[j][i]);
-
-              Packet pa2(PacketTypes::INIT, CURR.position);
-              pa2.AddItem(CURR.id);
-
-              int s = channels[j].size() - 1;
-
-              pa2.AddItem(s);
-
-              for (int k = 0; k < channels[i].size(); ++k)
+              case PacketTypes::TEXT:
               {
-                if (channels[j][k].user != CURR.user)
+                std::string str = p.GetData();
+                TraceLog::Log(TRACE_LEVEL::NETWORK, "Message '" + str + "' received.");
+
+                std::string res;
+                CreateMessage(res, channels[j][i].user, str);
+
+                Packet p(PacketTypes::TEXT, res, str);
+
+                SendPacketToChannel(p, j);
+                break;
+              }
+              case PacketTypes::CSHUT:
+              {
+                std::string disconnectedMessage = channels[j][i].user;
+                disconnectedMessage += " disconnected.";
+                TraceLog::Log(TRACE_LEVEL::NETWORK, disconnectedMessage);
+                CURR.SetDelete();
+                SendPacketToAll(p);
+                break;
+              }
+              case PacketTypes::LOGIN:
+              {
+                channels[j][i].user = p.GetData();
+                channels[j][i].channel = j;
+                channels[j][i].position = glm::vec2(RandomEngine::Float(-2.f, 2.f), RandomEngine::Float(-2.f, 2.f));
+                CURR.p.SetPosition(CURR.position);
+                std::string str2 = channels[j][i].user;
+                str2 += " has joined.";
+                TraceLog::Log(TRACE_LEVEL::NETWORK, str2);
+                TraceLog::Log(TRACE_LEVEL::INFO, "Player spawned at " + std::to_string(CURR.position.x) + ", " + std::to_string(CURR.position.y));
+                Packet pa(PacketTypes::LOGIN, str2, "Login message.");
+                pa.AddItem(CURR.position);
+                pa.AddItem(CURR.id);
+
+                SendPacketToAllBut(pa, channels[j][i]);
+
+                Packet pa2(PacketTypes::INIT, CURR.position);
+                pa2.AddItem(CURR.id);
+
+                int s = channels[j].size() - 1;
+
+                pa2.AddItem(s);
+
+                for (int m = 0; m < channels[j].size(); ++m)
                 {
-                  pa2.AddItem(channels[j][i].position);
-                  pa2.AddItem(CURR.id);
+                  if (channels[j][m].socket != CURR.socket && !CURR.remove)
+                  {
+                    pa2.AddItem(channels[j][m].position);
+                    pa2.AddItem(channels[j][m].id);
+                  }
                 }
-              }
 
-              SendPacket(pa2, channels[j][i]);
-              break;
-            }
-            case PacketTypes::VERSION:
-            {
-              std::string str = p.GetData();
-              if (str == version)
-              {
-                Packet pack(PacketTypes::TEXT, "Correct");
-                SendPacket(pack, channels[j][i]);
+                SendPacket(pa2, channels[j][i]);
+                break;
               }
-              break;
-            }
-            case PacketTypes::PING:
-            {
-              Packet p(PacketTypes::PING);
-              SendPacket(p, channels[j][i]);
-              break;
-            }
-            case PacketTypes::CH_CHECK:
-            {
-              Packet p(PacketTypes::CH_CHECK, channels[j][i].channel);
-              SendPacket(p, channels[j][i]);
-              break;
-            }
-            case PacketTypes::CH_CHANGE:
-            {
-              int channel = p.GetData<int>();
-              channels[channel].push_back(channels[j][i]);
-              channels[j].erase(channels[j].begin() + i);
-              Packet p(PacketTypes::TEXT, "Successfully moved to channel " + std::to_string(channel) + "!");
-              SendPacket(p, channels[channel].back());
-              channels[channel].back().channel = channel;
-              Packet p2(PacketTypes::TEXT, channels[channel].back().user + " has joined channel " + std::to_string(channel) + ".");
-              SendPacketToChannel(p2, channel);
-              --i;
-              break;
-            }
-            default:
-            {
-              TraceLog::Log(TRACE_LEVEL::ERR, "Packet type unrecognized!");
-              break;
+              case PacketTypes::VERSION:
+              {
+                std::string str = p.GetData();
+                if (str == version)
+                {
+                  Packet pack(PacketTypes::TEXT, "Correct");
+                  SendPacket(pack, channels[j][i]);
+                }
+                break;
+              }
+              case PacketTypes::PING:
+              {
+                Packet p(PacketTypes::PING);
+                SendPacket(p, channels[j][i]);
+                break;
+              }
+              case PacketTypes::CH_CHECK:
+              {
+                Packet p(PacketTypes::CH_CHECK, channels[j][i].channel);
+                SendPacket(p, channels[j][i]);
+                break;
+              }
+              case PacketTypes::CH_CHANGE:
+              {
+                int channel = p.GetData<int>();
+                channels[channel].push_back(channels[j][i]);
+                channels[j].erase(channels[j].begin() + i);
+                Packet p(PacketTypes::TEXT, "Successfully moved to channel " + std::to_string(channel) + "!");
+                SendPacket(p, channels[channel].back());
+                channels[channel].back().channel = channel;
+                Packet p2(PacketTypes::TEXT, channels[channel].back().user + " has joined channel " + std::to_string(channel) + ".");
+                SendPacketToChannel(p2, channel);
+                --i;
+                break;
+              }
+              case PacketTypes::MOVE:
+              {
+                bool x = p.GetItem<bool>();
+                ActionTypes t = p.GetItem<ActionTypes>();
+
+                CURR.p.SetKey(t, x);
+
+                break;
+              }
+              default:
+              {
+                TraceLog::Log(TRACE_LEVEL::ERR, "Packet type unrecognized!");
+                break;
+              }
             }
           }
-        }
-        else if (res == 0)
-        {
-
         }
       }
     }
 
+    DelayedDestruction();
+
     prev = clock.now();
+
     dt += prev - curr;
 
     if (dt.count() > 300000)
@@ -402,7 +414,72 @@ void Server::Update()
 
       dt = prev - curr;
     }
+
+    std::chrono::duration<double, std::milli> dt2 = prev - curr;
+    unsigned m = 0;
+
+    for (int i = 0; i < channelNum; ++i)
+    {
+      for (int j = 0; j < channels[i].size(); ++j)
+      {
+        channels[i][j].p.ServerUpdate(dt2.count() / 1000);
+
+        if (channels[i][j].p.Moved())
+        {
+          ++m;
+        }
+      }
+    }
+
+    Packet po(PacketTypes::MOVE, m, "Movement packet.");
+
+    for (int i = 0; i < channelNum; ++i)
+    {
+      for (int j = 0; j < channels[i].size(); ++j)
+      {
+        if (channels[i][j].p.Moved() == true)
+        {
+          po.AddItem<unsigned>(channels[i][j].id);
+          po.AddItem<glm::vec2>(channels[i][j].p.GetPosition());
+        }
+      }
+    }
+
+    SendPacketToAll(po);
   }
+  
+    //  dont work for some reason
+  Packet p(PacketTypes::SSHUT);
+  SendPacketToAll(p);
+}
+
+void Server::DelayedDestruction()
+{
+  for (int j = 0; j < channelNum; ++j)
+  {
+    for (int i = 0; i < channels[j].size(); ++i)
+    {
+      if (CURR.remove)
+      {
+        RemoveClient(j, i);
+        --i;
+      }
+    }
+  }
+}
+
+void Server::RemoveClient(unsigned ch, unsigned i)
+{
+  S_Client temp = channels[ch][i];
+  
+  std::string disconnectedMessage = temp.user;
+  disconnectedMessage += " disconnected.";
+  Packet p(PacketTypes::P_DISC, disconnectedMessage, "Disconnect message.");
+  p.AddItem(temp.id);
+
+  channels[ch].erase(channels[ch].begin() + i);
+
+  SendPacketToChannel(p, ch);
 }
 
 void Server::Shutdown(void)

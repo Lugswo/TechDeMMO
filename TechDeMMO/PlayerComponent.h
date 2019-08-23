@@ -12,6 +12,27 @@ public:
   void Init() override;
   void Update(float dt) override;
 
+  void ServerUpdate(float dt);
+
+  void SetKey(ActionTypes a, bool b);
+
+  void ServerSetPos(const glm::vec2 &);
+
+  bool Moved() const
+  {
+    return moved;
+  }
+
+  const glm::vec2 GetPosition() const
+  {
+    return pos;
+  }
+
+  void SetPosition(const glm::vec2 & v)
+  {
+    pos = v;
+  }
+
   NAME(PlayerComponent)
 
 private:
@@ -20,7 +41,9 @@ private:
 
   void MovePlayer(bool, int s, float);
 
-  bool client;
+  bool client, moved;
+
+  glm::vec2 pos;
 
   TransformComponent *trans;
 

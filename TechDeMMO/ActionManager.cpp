@@ -31,6 +31,11 @@ void ActionManager::Set(ActionTypes t)
   actions[t] = true;
 }
 
+void ActionManager::Set(ActionTypes t, bool b)
+{
+  actions[t] = b;
+}
+
 void ActionManager::FrameSet(ActionTypes t)
 {
   actions[t] = true;

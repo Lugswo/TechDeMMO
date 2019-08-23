@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
 #include "PacketTypes.h"
 
 class Packet
@@ -31,6 +33,25 @@ public:
     *pa = p;
     char * temp = reinterpret_cast<char *>(beginData + sizeof(PacketTypes));
     memcpy(temp, d.c_str(), d.length() + 1);
+
+    data = reinterpret_cast<char *>(temp);
+
+    desc = s;
+  }
+
+  template <typename T>
+  Packet(PacketTypes p, const std::vector<T> v, const std::string &s = "")
+  {
+    size = static_cast<int>(sizeof(PacketTypes) + (v.size() * sizeof(T)) + sizeof(unsigned));
+    beginData = new char[size];
+    PacketTypes *pa = reinterpret_cast<PacketTypes *>(beginData);
+    *pa = p;
+
+    unsigned * temp = reinterpret_cast<unsigned *>(beginData + sizeof(PacketTypes));
+    *temp = static_cast<unsigned>(v.size());
+
+    void * t2 = reinterpret_cast<void *>(beginData + sizeof(PacketTypes) + sizeof(unsigned));
+    memcpy(t2, v.data(), (v.size() * sizeof(T)));
 
     data = reinterpret_cast<char *>(temp);
 
@@ -90,7 +111,7 @@ public:
   void AddItem(T d)
   {
     char *newDat = new char[size + sizeof(T)];
-    ZeroMemory(newDat, size + sizeof(T));
+    memset(newDat, 0, size + sizeof(T));
     memcpy(newDat, beginData, size);
 
     char *temp = beginData;

@@ -10,6 +10,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 #include "Packet.h"
+#include "PlayerComponent.h"
 
 #define PORT "25565"
 
@@ -27,15 +28,25 @@ private:
   class S_Client
   {
   public:
-    S_Client(unsigned i)
+    S_Client(unsigned i) : p(false)
     {
       socket = INVALID_SOCKET;
       id = i;
+      remove = false;
+    }
+
+    void SetDelete()
+    {
+      remove = true;
     }
 
     SOCKET socket;
     std::string user;
     unsigned channel, id;
+
+    bool remove;
+
+    PlayerComponent p;
 
     glm::vec2 position;
   };
@@ -45,9 +56,12 @@ private:
   static void SendPacketToAllBut(Packet &p, S_Client &cl);
   static void SendPacketToChannel(Packet &p, int ch);
 
+  static void RemoveClient(unsigned ch, unsigned i);
+
   static void CreateMessage(std::string &, const std::string&, const std::string&);
 
   static std::vector<std::vector<S_Client>> channels;
+  
   //static std::vector<S_Client> sockets;
 
   static std::chrono::steady_clock clock;
@@ -56,8 +70,12 @@ private:
 
   static void InputText();
 
+  static void DelayedDestruction();
+
   static bool successfullyOpened, running;
   static SOCKET sock;
 
   static unsigned id;
+
+  static std::vector<glm::vec2> positions;
 };

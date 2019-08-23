@@ -18,6 +18,8 @@ public:
   static void AddObject(GameObject *);
   static void RemoveObject(unsigned);
 
+  static GameObject * GetPlayer(unsigned);
+
 private:
   GameObjectFactory();
 

@@ -65,3 +65,9 @@ void TransformComponent::SetTranslation(const glm::vec3 & translation)
   dirty = td = true;
   t = translation;
 }
+
+void TransformComponent::SetTranslation(const glm::vec2 & translation)
+{
+  dirty = td = true;
+  t = glm::vec3(translation.x, translation.y, 0.f);
+}

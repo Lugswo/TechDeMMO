@@ -8,12 +8,15 @@ enum class PacketTypes
   C_CHECK,
   VERSION,
 
-    //  actual packets
+    //  game packets
   TEXT,
   JOIN,
   PING,
   CH_CHANGE,
   P_DISC,
+
+    //  player input
+  MOVE,
 
     //  utility packets
   CH_CHECK,

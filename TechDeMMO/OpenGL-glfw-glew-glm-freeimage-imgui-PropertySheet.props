@@ -14,6 +14,7 @@
       <Command>copy "$(SolutionDir)lib\glfw\lib-vc2015\glfw3.dll" "$(TargetDir)glfw3.dll" /Y
 copy "$(SolutionDir)lib\rrtr\bin\rttr_core.dll" "$(TargetDir)rttr_core.dll" /Y
 copy "$(SolutionDir)lib\FMOD\Libraries\fmod64.dll" "$(TargetDir)fmod64.dll" /Y
+
 </Command>
     </PostBuildEvent>
     <ClCompile>

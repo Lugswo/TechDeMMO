@@ -1,5 +1,6 @@
 #include "GameObjectFactory.h"
 
+#include "TraceLog.h"
 #include "TransformComponent.h"
 #include "SpriteComponent.h"
 #include "PlayerComponent.h"
@@ -56,10 +57,26 @@ void GameObjectFactory::CreatePlayer(bool t, glm::vec2 pos, unsigned i)
 void GameObjectFactory::DeletePlayer(unsigned i)
 {
   GameObject *temp = playerList[i];
-  objectList.erase(temp->GetID());
-  playerList.erase(i);
+
+  if (temp)
+  {
+    objectList.erase(temp->GetID());
+    playerList.erase(i);
+  }
 
   delete temp;
+}
+
+GameObject * GameObjectFactory::GetPlayer(unsigned i)
+{
+  auto it = playerList.find(i);
+  if (it == playerList.end())
+  {
+    TraceLog::Log(TRACE_LEVEL::ERR, "Cannot find player with given id " + std::to_string(i) + "!");
+    return nullptr;
+  }
+
+  return playerList[i];
 }
 
 void GameObjectFactory::AddObject(GameObject *obj)

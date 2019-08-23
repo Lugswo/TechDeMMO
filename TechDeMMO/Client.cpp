@@ -6,6 +6,7 @@
 #include "InputManager.h"
 #include "Engine.h"
 #include "SharedVariables.h"
+#include "TransformComponent.h"
 
 #include "GameObjectFactory.h"
 
@@ -265,6 +266,26 @@ void Client::ReceivePacket()
 
           break;
         }
+        case PacketTypes::MOVE:
+        {
+          unsigned u = p.GetItem<unsigned>();
+
+          for (unsigned i = 0; i < u; ++i)
+          {
+            unsigned id = p.GetItem<unsigned>();
+            GameObject *player = GameObjectFactory::GetPlayer(id);
+
+            glm::vec2 pos = p.GetItem<glm::vec2>();
+
+            if (player)
+            {
+              TransformComponent *trans = GetComponent(player, TransformComponent);
+              trans->SetTranslation(pos);
+            }
+          }
+
+          break;
+        }
         case PacketTypes::CH_CHECK:
         {
           int channel = p.GetData<int>();
@@ -274,6 +295,12 @@ void Client::ReceivePacket()
           Packet p(PacketTypes::CH_CHANGE, newch);
           SendPacket(p);
           chChange = false;
+          break;
+        }
+        case PacketTypes::SSHUT:
+        {
+          TraceLog::Log(TRACE_LEVEL::ERR, "Connection with server lost!  Closing game.");
+          Engine::CloseWindow();
           break;
         }
         default:

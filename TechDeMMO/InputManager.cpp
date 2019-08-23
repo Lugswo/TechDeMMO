@@ -62,12 +62,12 @@ bool InputManager::KeyDown(int key)
 //{
 //
 //}
-//
-//bool InputManager::KeyRelease(int key)
-//{
-//
-//}
-//
+
+bool InputManager::KeyRelease(int key)
+{
+  return keyboard[key].r;
+}
+
 //bool InputManager::KeyRelease(int key, int key2)
 //{
 //

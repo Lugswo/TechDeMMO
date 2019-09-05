@@ -40,7 +40,7 @@ void GameObjectFactory::CreatePlayer(bool t, glm::vec2 pos, unsigned i)
   GameObject *obj = new GameObject();
   TransformComponent *trans = new TransformComponent();
   SpriteComponent *sprite = new SpriteComponent("ArtAssets/bub.png");
-  PlayerComponent *player = new PlayerComponent(t);
+  PlayerComponent *player = new PlayerComponent(t, pos);
 
   obj->AddComponent(trans);
   obj->AddComponent(sprite);

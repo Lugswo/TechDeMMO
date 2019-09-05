@@ -12,16 +12,19 @@ enum class TRACE_LEVEL
   IMPORTANT, //  extremely important info like game start, game connection to server, etc
   WARN,      //  warnings that can lead to potential crashes
   INFO,      //  info for an average user (monster spawns, player moving areas, etc)
+  NETWORK,   //  client/server messages
   DEBUG,     //  info for developers (testing certain data, making sure values are correct, etc)
   EDITOR,    //  info from the editor for debugging
-  NETWORK,   //  client/server messages
+  VNETWORK,  //  client/server messages that are too verbose
   VERBOSE    //  everything
 };
+
+typedef TRACE_LEVEL TL;
 
 class TraceLog
 {
 public:
-  static void Init();
+  static void Init(TRACE_LEVEL t);
   static void Log(TRACE_LEVEL verbosity, const std::string& message);
 
 private:
@@ -31,3 +34,5 @@ private:
 
   static bool generateTrace;
 };
+
+typedef TraceLog L;

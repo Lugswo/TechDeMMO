@@ -2,19 +2,28 @@
 
 #include <cstring>
 
-Packet::Packet(char *d)
+Packet::Packet(char *d, unsigned u)
 {
-  beginData = d;
+  memcpy(beginData, d, u);
 
-  PacketTypes *p = reinterpret_cast<PacketTypes *>(d);
+  PacketTypes *p = reinterpret_cast<PacketTypes *>(d + sizeof(unsigned));
 
   type = *p;
-  data = d + sizeof(PacketTypes);
+  data = d + sizeof(PacketTypes) + sizeof(unsigned);
 }
 
 const char * Packet::GetData() const
 {
   return data;
+}
+
+bool Packet::CheckAfterData()
+{
+  if (data + offset != nullptr)
+  {
+    return true;
+  }
+  return false;
 }
 
 Packet::operator char *()
@@ -24,5 +33,5 @@ Packet::operator char *()
 
 Packet::~Packet()
 {
-  delete beginData;
+
 }

@@ -9,6 +9,7 @@
 #include "TransformComponent.h"
 
 #include "GameObjectFactory.h"
+#include "PlayerComponent.h"
 
 #define PORT "25565"
 
@@ -17,6 +18,7 @@ SOCKET Client::sock;
 std::chrono::steady_clock Client::clock;
 std::chrono::time_point<std::chrono::steady_clock> Client::curr, Client::prev;
 std::chrono::duration<double, std::milli> Client::time;
+std::vector<Packet> Client::packets;
 
 static char buf[1024];
 
@@ -98,9 +100,8 @@ void Client::Init(const std::string &ip)
 
   if (res > 0)
   {
-    char *c = new char[1024];
-    memcpy(c, buf, 1024);
-    Packet p(c);
+    unsigned size = *(reinterpret_cast<unsigned *>(buf));
+    Packet p(buf, size);
 
     std::string ver2 = p.GetData();
     if (ver2 != "Correct")
@@ -177,14 +178,17 @@ void Client::Update()
     prev = clock.now();
     ping = false;
   }
-  ReceivePacket();
 
   if (InputManager::KeyPress(GLFW_KEY_4))
   {
-    std::string str = "Hello server!";
-    Packet p(PacketTypes::TEXT, str, "Hello server!");
+    Packet p(PacketTypes::TEXT, "FRICK");
+    SendPacket(p);
     SendPacket(p);
   }
+
+  memset(buf, 0, 1024);
+
+  ReceivePacket();
 }
 
 void Client::ReceivePacket()
@@ -196,119 +200,134 @@ void Client::ReceivePacket()
 
     if (res > 0)
     {
-      char *c = new char[1024];
-      memcpy(c, buf, 1024);
-      Packet p(c);
+      char *temp = buf;
 
-      PacketTypes t = p.GetType();
-
-      switch (t)
+      while (*temp != 0)
       {
-        case PacketTypes::TEXT:
+        unsigned size = *(reinterpret_cast<unsigned *>(buf));
+
+        packets.push_back(Packet(buf, size));
+
+        PacketTypes t = packets.back().GetType();
+
+        temp += size;
+      }
+
+      for (Packet & p : packets)
+      {
+        switch (p.GetType())
         {
-          TraceLog::Log(TRACE_LEVEL::NETWORK, p.GetData());
-          std::cout << p.GetData() << std::endl;
-          break;
-        }
-        case PacketTypes::C_CHECK:
-        {
-          TraceLog::Log(TRACE_LEVEL::NETWORK, "Received connectivity check packet.");
-          break;
-        }
-        case PacketTypes::PING:
-        {
-          curr = clock.now();
-          time = curr - prev;
-          std::string msg = "Ping is ";
-          msg += std::to_string(static_cast<int>(time.count()));
-          msg += ".";
-          TraceLog::Log(TRACE_LEVEL::INFO, msg);
-
-          ping = false;
-          break;
-        }
-        case PacketTypes::LOGIN:
-        {
-          std::string s = p.GetItemPtr<char>();
-
-          glm::vec2 pos = p.GetItem<glm::vec2>();
-
-          unsigned i = p.GetItem<unsigned>();
-
-          GameObjectFactory::CreatePlayer(false, pos, i);
-
-          break;
-        }
-        case PacketTypes::P_DISC:
-        {
-          std::string s = p.GetItemPtr<char>();
-          TraceLog::Log(TRACE_LEVEL::NETWORK, s);
-
-          unsigned i = p.GetItem<unsigned>();
-          GameObjectFactory::DeletePlayer(i);
-          break;
-        }
-        case PacketTypes::INIT:
-        {
-          glm::vec2 pos = p.GetItem<glm::vec2>();
-          unsigned i = p.GetItem<int>();
-
-          GameObjectFactory::CreatePlayer(true, pos, i);
-
-          int s = p.GetItem<int>();
-
-          for (int i = 0; i < s; ++i)
+          case PacketTypes::TEXT:
           {
-            glm::vec2 position = p.GetItem<glm::vec2>();
-            unsigned u = p.GetItem<unsigned>();
-            GameObjectFactory::CreatePlayer(false, position, u);
+            TraceLog::Log(TRACE_LEVEL::NETWORK, p.GetData());
+            std::string s = p.GetItemPtr<char>();
+            std::cout << s << std::endl;
+            break;
           }
-
-          break;
-        }
-        case PacketTypes::MOVE:
-        {
-          unsigned u = p.GetItem<unsigned>();
-
-          for (unsigned i = 0; i < u; ++i)
+          case PacketTypes::C_CHECK:
           {
-            unsigned id = p.GetItem<unsigned>();
-            GameObject *player = GameObjectFactory::GetPlayer(id);
+            TraceLog::Log(TRACE_LEVEL::NETWORK, "Received connectivity check packet.");
+            break;
+          }
+          case PacketTypes::PING:
+          {
+            curr = clock.now();
+            time = curr - prev;
+            std::string msg = "Ping is ";
+            msg += std::to_string(static_cast<int>(time.count()));
+            msg += ".";
+            TraceLog::Log(TRACE_LEVEL::INFO, msg);
+
+            ping = false;
+            break;
+          }
+          case PacketTypes::LOGIN:
+          {
+            std::string s = p.GetItemPtr<char>();
 
             glm::vec2 pos = p.GetItem<glm::vec2>();
 
-            if (player)
-            {
-              TransformComponent *trans = GetComponent(player, TransformComponent);
-              trans->SetTranslation(pos);
-            }
-          }
+            unsigned i = p.GetItem<unsigned>();
 
-          break;
-        }
-        case PacketTypes::CH_CHECK:
-        {
-          int channel = p.GetData<int>();
-          std::cout << "Enter which channel you would like to switch to. (You are currently on channel " << channel << ")" << std::endl;
-          int newch = 0;
-          std::cin >> newch;
-          Packet p(PacketTypes::CH_CHANGE, newch);
-          SendPacket(p);
-          chChange = false;
-          break;
-        }
-        case PacketTypes::SSHUT:
-        {
-          TraceLog::Log(TRACE_LEVEL::ERR, "Connection with server lost!  Closing game.");
-          Engine::CloseWindow();
-          break;
-        }
-        default:
-        {
-          TraceLog::Log(TRACE_LEVEL::WARN, "Packet type not recognized!");
-          break;
+            GameObjectFactory::CreatePlayer(false, pos, i);
+
+            break;
+          }
+          case PacketTypes::P_DISC:
+          {
+            std::string s = p.GetItemPtr<char>();
+            TraceLog::Log(TRACE_LEVEL::NETWORK, s);
+
+            unsigned i = p.GetItem<unsigned>();
+            GameObjectFactory::DeletePlayer(i);
+            break;
+          }
+          case PacketTypes::INIT:
+          {
+            glm::vec2 pos = p.GetItem<glm::vec2>();
+            unsigned i = p.GetItem<int>();
+
+            GameObjectFactory::CreatePlayer(true, pos, i);
+
+            int s = p.GetItem<int>();
+
+            for (int i = 0; i < s; ++i)
+            {
+              glm::vec2 position = p.GetItem<glm::vec2>();
+              unsigned u = p.GetItem<unsigned>();
+              GameObjectFactory::CreatePlayer(false, position, u);
+            }
+
+            break;
+          }
+          case PacketTypes::MOVE:
+          {
+            unsigned u = p.GetItem<unsigned>();
+
+            for (unsigned i = 0; i < u; ++i)
+            {
+              unsigned id = p.GetItem<unsigned>();
+              GameObject *player = GameObjectFactory::GetPlayer(id);
+
+              glm::vec2 pos = p.GetItem<glm::vec2>();
+
+              if (player)
+              {
+                PlayerComponent *c = GetComponent(player, PlayerComponent);
+                c->SetNextPosition(pos);
+                //TransformComponent *trans = GetComponent(player, TransformComponent);
+                //trans->SetTranslation(pos);
+              }
+            }
+
+            break;
+          }
+          case PacketTypes::CH_CHECK:
+          {
+            int channel = p.GetData<int>();
+            std::cout << "Enter which channel you would like to switch to. (You are currently on channel " << channel << ")" << std::endl;
+            int newch = 0;
+            std::cin >> newch;
+            Packet p(PacketTypes::CH_CHANGE, newch);
+            SendPacket(p);
+            chChange = false;
+            break;
+          }
+          case PacketTypes::SSHUT:
+          {
+            TraceLog::Log(TRACE_LEVEL::ERR, "Connection with server lost!  Closing game.");
+            Engine::CloseWindow();
+            break;
+          }
+          default:
+          {
+            TraceLog::Log(TRACE_LEVEL::WARN, "Packet type not recognized!");
+            break;
+          }
         }
       }
+
+      packets.clear();
     }
   }
 }

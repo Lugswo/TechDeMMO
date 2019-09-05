@@ -10,10 +10,14 @@ typedef ActionManager AM;
 typedef ActionTypes AT;
 
 const int speed = 10;
+const float close = .05f;
 
-PlayerComponent::PlayerComponent(bool c)
+PlayerComponent::PlayerComponent(bool c, const glm::vec2 &v)
 {
   client = c;
+  npos = v;
+  lpos = v;
+  pos = v;
   moved = false;
 }
 
@@ -25,12 +29,91 @@ void PlayerComponent::Init()
 void PlayerComponent::ServerSetPos(const glm::vec2 & p)
 {
   pos = p;
+  lpos = pos;
+  npos = pos;
 }
 
 void PlayerComponent::Update(float dt)
 {
   if (client)
+  {
     InputLoop(dt);
+    //else
+  }
+
+  LERP(dt);
+}
+
+static bool CloseEnough(const float x, const float x2)
+{
+  if (x < x2)
+    return (x + close >= x2);
+  return (x - close <= x2);
+}
+
+bool ReachedDest(float & x, const float dest, const bool r)
+{
+  if (r)
+  {
+    bool b = (x < dest);
+    if (b)
+      x = dest;
+    return b;
+  }
+  bool b = (x > dest);
+  if (b)
+    x = dest;
+  return b;
+}
+
+void PlayerComponent::LERP(float dt)
+{
+  if (npos == pos || lpos == npos)
+  {
+    return;
+  }
+
+  //float x, y;
+
+  //x = lpos.x + (dt * ((npos.x - lpos.x) / (100)));
+  //x -= lpos.x;
+  //y = lpos.y + (dt * ((npos.y - lpos.y) / (100)));
+  //y -= lpos.y;
+
+  //pos.x += x;
+  //pos.y += y;
+
+  if (!CloseEnough(pos.x, npos.x))
+  {
+    if (npos.x > lpos.x)
+    {
+      if (!ReachedDest(pos.x, npos.x, false))
+        MovePlayer(true, speed, dt);
+    }
+
+    else if (npos.x < lpos.x)
+    {
+      if (!ReachedDest(pos.x, npos.x, true))
+        MovePlayer(true, -speed, dt);
+    }
+  }
+
+  if (!CloseEnough(pos.y, npos.y))
+  {
+    if (npos.y > lpos.y)
+    {
+      if (!ReachedDest(pos.y, npos.y, false))
+        MovePlayer(false, speed, dt);
+    }
+
+    else if (npos.y < lpos.y)
+    {
+      if (!ReachedDest(pos.y, npos.y, true))
+        MovePlayer(false, -speed, dt);
+    }
+  }
+
+  trans->SetTranslation(pos);
 }
 
 void PlayerComponent::ServerUpdate(float dt)
@@ -157,8 +240,6 @@ void PlayerComponent::MovePlayer(bool x, int s, float dt)
 
 void PlayerComponent::UpdateLoop(float dt)
 {
-  moved = false;
-
   if (am.Check(AT::L_MOVE))
     MovePlayer(true, -speed, dt);
   if (am.Check(AT::R_MOVE))

@@ -4,7 +4,7 @@
 #include <ctime>
 #include <algorithm>
 
-TRACE_LEVEL TraceLog::level = TRACE_LEVEL::INFO;
+TRACE_LEVEL TraceLog::level;
 std::ofstream TraceLog::file;
 bool TraceLog::consoleOut = true;
 bool TraceLog::generateTrace = true;
@@ -37,8 +37,9 @@ static std::string SetupString()
   return str;
 }
 
-void TraceLog::Init()
+void TraceLog::Init(TRACE_LEVEL l)
 {
+  level = l;
   if (generateTrace)
   {
     auto end = std::chrono::system_clock::now();

@@ -28,7 +28,7 @@ private:
   class S_Client
   {
   public:
-    S_Client(unsigned i) : p(false)
+    S_Client(unsigned i) : p(false, glm::vec2(0.f))
     {
       socket = INVALID_SOCKET;
       id = i;
@@ -66,7 +66,7 @@ private:
 
   static std::chrono::steady_clock clock;
   static std::chrono::time_point<std::chrono::steady_clock> curr, prev;
-  static std::chrono::duration<double, std::milli> dt, counter;
+  static std::chrono::duration<double, std::milli> dt, counter, mdt;
 
   static void InputText();
 
@@ -78,4 +78,6 @@ private:
   static unsigned id;
 
   static std::vector<glm::vec2> positions;
+
+  static std::vector<Packet> packets;
 };

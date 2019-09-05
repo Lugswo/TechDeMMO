@@ -86,7 +86,7 @@ bool Engine::LoadSettings()
 
       file << settings.screenW << std::endl;
       file << settings.screenH << std::endl;
-      file << "192.168.puturshittyipherelol" << std::endl;
+      file << "Put ip here" << std::endl;
       file << "NONAME" << std::endl;
 
       TraceLog::Log(TRACE_LEVEL::INFO, "Settings file successfully generated.");
@@ -113,7 +113,7 @@ void Engine::Init()
 {
   successfullyOpened = false;
 
-  TraceLog::Init();
+  TraceLog::Init(TL::INFO);
   InputManager::Init();
 
   if (!LoadSettings())
